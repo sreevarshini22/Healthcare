@@ -1,9 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "medivault"
 version = "1.0.0"
 description = "MediVault - Personal Health Record Manager"
 readme = "README.md"
 requires-python = ">=3.10"
+dependencies = [
+    "Flask>=3.0.0",
+    "Flask-Login>=0.6.3",
+    "pymongo>=4.6.0",
+    "python-dotenv>=1.0.0",
+    "Werkzeug>=3.0.0",
+    "email-validator>=2.1.0",
+    "pypdf>=4.0.0",
+    "twilio>=8.10.0",
+    "apscheduler>=3.10.0",
+    "requests>=2.31.0",
+    "mongomock>=4.1.2",
+    "gunicorn>=21.2.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-mock>=3.12.0"
+]
+
+[tool.setuptools]
+packages = ["app", "app.routes", "app.services", "app.utils"]
 
 [tool.vercel]
-entrypoint = "run.py:app"
+entrypoint = "api/index.py:app"

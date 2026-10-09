@@ -12,7 +12,9 @@ class Config:
     MONGODB_DATABASE = os.environ.get('MONGODB_DATABASE') or 'medivault_db'
     
     # File Uploads / Private Storage Settings
-    STORAGE_FOLDER = os.environ.get('STORAGE_FOLDER') or os.path.join(BASE_DIR, 'storage')
+    STORAGE_FOLDER = os.environ.get('STORAGE_FOLDER') or (
+        '/tmp/storage' if os.environ.get('VERCEL') else os.path.join(BASE_DIR, 'storage')
+    )
     UPLOAD_FOLDER = STORAGE_FOLDER  # Alias for backward compatibility
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max upload size
     ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'webp'}
@@ -45,7 +47,7 @@ class Config:
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'notifications@medivault-health.org')
     
     # Scheduler Settings
-    SCHEDULER_ENABLED = os.environ.get('SCHEDULER_ENABLED', 'true').lower() == 'true'
+    SCHEDULER_ENABLED = os.environ.get('SCHEDULER_ENABLED', 'false' if os.environ.get('VERCEL') else 'true').lower() == 'true'
     SCHEDULER_INTERVAL_MINUTES = int(os.environ.get('SCHEDULER_INTERVAL_MINUTES', 5))
     
     # Application Meta
