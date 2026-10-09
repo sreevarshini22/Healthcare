@@ -80,7 +80,7 @@ function applyTheme(theme) {
             themeIcon.className = 'bi bi-sun-fill text-warning';
             if (themeText) themeText.textContent = 'Light Mode';
         } else {
-            themeIcon.className = 'bi bi-moon-stars-fill text-muted';
+            themeIcon.className = 'bi bi-moon-stars-fill text-primary';
             if (themeText) themeText.textContent = 'Dark Mode';
         }
     }

@@ -22,11 +22,11 @@
         <div class="container-fluid px-lg-5 d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-3">
                 <span><i class="bi bi-shield-lock-fill text-success me-1"></i> Patient Confidentiality & Encrypted Records</span>
-                <span class="d-none d-md-inline text-muted">|</span>
+                <span class="d-none d-md-inline opacity-50">|</span>
                 <span class="d-none d-md-inline"><i class="bi bi-telephone-fill me-1"></i> Support: 1-800-555-VAULT</span>
             </div>
             <div class="d-flex align-items-center gap-3">
-                <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted p-0" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
+                <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
                     <i id="theme-toggle-icon" class="bi bi-moon-stars-fill"></i>
                     <span id="theme-toggle-text" class="d-none d-sm-inline ms-1 font-monospace" style="font-size: 0.78rem;">Theme</span>
                 </button>
@@ -174,13 +174,13 @@
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <span class="d-inline-flex align-items-center justify-content-center bg-white text-primary rounded px-2 py-1 shadow-sm">
                             <i class="bi bi-heart-pulse-fill text-danger me-1"></i>
-                            <strong style="color: var(--mv-navy);">Medi</strong><span style="color: var(--mv-green); font-weight: 700;">Vault</span>
+                            <strong style="color: #102A43;">Medi</strong><span style="color: #16805D; font-weight: 700;">Vault</span>
                         </span>
                     </div>
-                    <p class="text-muted small mb-3">
+                    <p class="mv-footer-desc mb-3">
                         A secure personal health record management system engineered to organize medical reports, track prescriptions, schedule appointments, and provide private AI-powered clinical insights.
                     </p>
-                    <div class="small text-muted d-flex align-items-center gap-2">
+                    <div class="small mv-footer-trust d-flex align-items-center gap-2">
                         <i class="bi bi-shield-check text-success"></i>
                         <span>Zero public exposure &bull; HIPAA &amp; GDPR Aligned</span>
                     </div>
@@ -213,25 +213,25 @@
                 <!-- Column 4: Clinical Disclaimer -->
                 <div class="col-lg-4 col-md-6">
                     <h6 class="mv-footer-heading">Important Clinical Notice</h6>
-                    <p class="small text-muted mb-2">
+                    <p class="small mv-footer-disclaimer mb-2">
                         MediVault is an archival and organization tool. MediVault does not provide emergency medical diagnosis, clinical evaluation, or prescription modifications. In case of a medical emergency, call 911 or your local emergency services immediately.
                     </p>
-                    <p class="small text-muted">
+                    <p class="small mv-footer-support">
                         <i class="bi bi-clock me-1"></i> Patient Support: Mon &ndash; Fri, 8:00 AM &ndash; 6:00 PM EST.
                     </p>
                 </div>
             </div>
 
             <div class="mv-footer-bottom d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
-                <div>
+                <div class="mv-copyright">
                     &copy; {{ current_year }} MediVault (Personal Health Record Manager). All rights reserved.
                 </div>
-                <div class="d-flex gap-3">
-                    <a href="{{ url_for('main.privacy') }}" class="small">Privacy Policy</a>
-                    <span class="text-secondary">&bull;</span>
-                    <a href="{{ url_for('main.terms') }}" class="small">Terms of Use</a>
-                    <span class="text-secondary">&bull;</span>
-                    <a href="{{ url_for('main.contact') }}" class="small">Security Helpdesk</a>
+                <div class="d-flex gap-3 mv-footer-legal">
+                    <a href="{{ url_for('main.privacy') }}">Privacy Policy</a>
+                    <span class="mv-footer-bullet">&bull;</span>
+                    <a href="{{ url_for('main.terms') }}">Terms of Use</a>
+                    <span class="mv-footer-bullet">&bull;</span>
+                    <a href="{{ url_for('main.contact') }}">Security Helpdesk</a>
                 </div>
             </div>
         </div>
