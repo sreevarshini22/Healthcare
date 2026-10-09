@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <!-- Left Classical Sidebar Navigation -->
+    <aside class="dashboard-sidebar">
+        <div class="px-3 py-2 mb-3 bg-light rounded border">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-person-circle fs-3 text-primary"></i>
+                <div class="overflow-hidden">
+                    <div class="fw-bold text-truncate" style="font-size: 0.95rem;">{{ current_user.full_name }}</div>
+                    <div class="text-muted text-truncate small" style="font-size: 0.78rem;">{{ current_user.email }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav-header">Main Portal</div>
+        <nav class="nav flex-column mb-3">
+            <a href="{{ url_for('dashboard.index') }}" class="sidebar-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard Overview</span>
+            </a>
+            <a href="{{ url_for('records.index') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('records.') %}active{% endif %}">
+                <i class="bi bi-folder2-open"></i>
+                <span>Medical Records</span>
+            </a>
+            <a href="{{ url_for('prescriptions.index') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('prescriptions.') %}active{% endif %}">
+                <i class="bi bi-capsule"></i>
+                <span>Prescriptions</span>
+            </a>
+            <a href="{{ url_for('appointments.index') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('appointments.') %}active{% endif %}">
+                <i class="bi bi-calendar-event"></i>
+                <span>Appointments</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-nav-header">AI &amp; Communication</div>
+        <nav class="nav flex-column mb-3">
+            <a href="{{ url_for('ai.chat') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('ai.') %}active{% endif %}">
+                <i class="bi bi-chat-heart text-info"></i>
+                <span>AI Records Chatbot</span>
+            </a>
+            <a href="{{ url_for('notifications.index') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('notifications.') %}active{% endif %}">
+                <i class="bi bi-bell text-warning"></i>
+                <span>Notifications</span>
+                {% if unread_notif_count and unread_notif_count > 0 %}
+                    <span class="badge bg-danger rounded-pill ms-auto" style="font-size: 0.7rem;">{{ unread_notif_count }}</span>
+                {% endif %}
+            </a>
+            <a href="{{ url_for('voice.logs') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('voice.') %}active{% endif %}">
+                <i class="bi bi-telephone-outbound text-success"></i>
+                <span>Voice Reminders</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-nav-header">Quick Actions</div>
+        <nav class="nav flex-column mb-3">
+            <a href="{{ url_for('records.upload') }}" class="sidebar-link text-primary">
+                <i class="bi bi-cloud-arrow-up"></i>
+                <span>Upload Document</span>
+            </a>
+            <a href="{{ url_for('prescriptions.add') }}" class="sidebar-link text-success">
+                <i class="bi bi-plus-circle"></i>
+                <span>Add Prescription</span>
+            </a>
+            <a href="{{ url_for('appointments.add') }}" class="sidebar-link text-info">
+                <i class="bi bi-calendar-plus"></i>
+                <span>Schedule Visit</span>
+            </a>
+        </nav>
+
+        <div class="mt-auto pt-3 border-top">
+            <div class="sidebar-nav-header">Account</div>
+            <a href="{{ url_for('auth.profile') }}" class="sidebar-link {% if request.endpoint == 'auth.profile' %}active{% endif %}">
+                <i class="bi bi-gear"></i>
+                <span>Profile &amp; Settings</span>
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="sidebar-link text-danger">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Sign Out</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <section class="dashboard-content">
+        {% block dashboard_content %}{% endblock %}
+    </section>
+</div>
+{% endblock %}

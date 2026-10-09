@@ -1,0 +1,183 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Notification Center & Reminder Settings – MediVault{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+    <div>
+        <h1 class="h4 fw-bold mb-1" style="color: var(--mv-navy);">
+            <i class="bi bi-bell text-primary me-2"></i>Notification Center &amp; Alert Settings
+        </h1>
+        <p class="text-muted small mb-0">Review upcoming clinical reminders, system notices, and configure notification channels</p>
+    </div>
+    {% if unread_count > 0 %}
+        <form method="POST" action="{{ url_for('notifications.mark_all_read') }}" class="d-inline">
+            <button type="submit" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-check2-all me-1"></i> Mark All as Read ({{ unread_count }})
+            </button>
+        </form>
+    {% endif %}
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Notification Feed -->
+    <div class="col-lg-8">
+        <div class="mv-card">
+            <div class="mv-card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-inbox text-primary"></i>
+                    <span>Recent Notifications ({{ notifications | length }})</span>
+                </div>
+                {% if unread_count > 0 %}
+                    <span class="badge bg-danger">{{ unread_count }} Unread</span>
+                {% endif %}
+            </div>
+            <div class="mv-card-body p-0">
+                {% if notifications %}
+                    <div class="list-group list-group-flush">
+                        {% for notif in notifications %}
+                            <div class="list-group-item p-3 d-flex justify-content-between align-items-start gap-3 {% if not notif.is_read %}bg-light border-start border-4 border-primary{% endif %}">
+                                <div class="d-flex gap-3">
+                                    <div class="p-2 rounded-circle bg-white border text-primary flex-shrink-0" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                                        {% if notif.type == 'appointment_reminder' %}
+                                            <i class="bi bi-calendar-check text-primary"></i>
+                                        {% elif notif.type == 'voice_call' %}
+                                            <i class="bi bi-telephone-outbound text-success"></i>
+                                        {% elif notif.type == 'ai_summary' %}
+                                            <i class="bi bi-stars text-info"></i>
+                                        {% else %}
+                                            <i class="bi bi-shield-check text-secondary"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <strong class="text-dark">{{ notif.title }}</strong>
+                                            {% if not notif.is_read %}
+                                                <span class="badge bg-primary" style="font-size: 0.65rem;">New</span>
+                                            {% endif %}
+                                        </div>
+                                        <p class="small text-muted mb-1">{{ notif.message }}</p>
+                                        <div class="d-flex align-items-center gap-3 small text-muted" style="font-size: 0.78rem;">
+                                            <span><i class="bi bi-clock me-1"></i> {{ notif.created_at | friendly_date }}</span>
+                                            {% if notif.link %}
+                                                <a href="{{ notif.link }}" class="text-decoration-none fw-semibold">View Details &rarr;</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-1 flex-shrink-0">
+                                    {% if not notif.is_read %}
+                                        <form method="POST" action="{{ url_for('notifications.mark_read', notif_id=notif.id) }}">
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm py-0 px-2" title="Mark as read">
+                                                <i class="bi bi-check"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('notifications.delete', notif_id=notif.id) }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2" title="Delete notification">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 px-3">
+                        <i class="bi bi-bell-slash text-muted" style="font-size: 2.8rem;"></i>
+                        <h6 class="fw-bold mt-2">No Notifications</h6>
+                        <p class="text-muted small mb-0">You are all caught up. Appointment reminders and system notices will appear here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Multi-Channel Reminder Preferences Card -->
+    <div class="col-lg-4">
+        <div class="mv-card">
+            <div class="mv-card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-sliders text-primary"></i>
+                    <span>Reminder Preferences</span>
+                </div>
+            </div>
+            <div class="mv-card-body p-4">
+                <form method="POST" action="{{ url_for('notifications.update_preferences') }}">
+                    <h6 class="fw-bold small mb-2" style="color: var(--mv-navy);">Delivery Channels</h6>
+                    
+                    <!-- In-App (Always On) -->
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="reminder_in_app" checked disabled>
+                        <label class="form-check-label small" for="reminder_in_app">
+                            <strong>In-App Notifications</strong> (Always Enabled)
+                        </label>
+                    </div>
+
+                    <!-- Email Reminders -->
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="reminder_email" name="reminder_email" value="1" {% if current_user.reminder_preferences.get('email', True) %}checked{% endif %}>
+                        <label class="form-check-label small" for="reminder_email">
+                            <strong>Email Reminders</strong>
+                            <div class="text-muted" style="font-size: 0.75rem;">Sent to {{ current_user.email }}</div>
+                        </label>
+                    </div>
+
+                    <!-- SMS Reminders -->
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="reminder_sms" name="reminder_sms" value="1" {% if current_user.reminder_preferences.get('sms', False) %}checked{% endif %}>
+                        <label class="form-check-label small" for="reminder_sms">
+                            <strong>SMS Text Alerts</strong>
+                            <div class="text-muted" style="font-size: 0.75rem;">Sent to {{ current_user.phone_number or 'registered mobile number' }}</div>
+                        </label>
+                    </div>
+
+                    <!-- Voice Reminder Calls -->
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="reminder_voice" name="reminder_voice" value="1" {% if current_user.reminder_preferences.get('voice', False) %}checked{% endif %}>
+                        <label class="form-check-label small" for="reminder_voice">
+                            <strong>Automated Voice Reminders</strong>
+                            <div class="text-muted" style="font-size: 0.75rem;">Receive phone call reminders with interactive confirmation</div>
+                        </label>
+                    </div>
+
+                    <h6 class="fw-bold small mb-2 border-top pt-3" style="color: var(--mv-navy);">Reminder Timing (Lead Times)</h6>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="lead_24h" name="lead_times" value="24h" {% if '24h' in current_user.reminder_preferences.get('lead_times', []) %}checked{% endif %}>
+                        <label class="form-check-label small" for="lead_24h">
+                            24 Hours Prior to Appointment
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="lead_2h" name="lead_times" value="2h" {% if '2h' in current_user.reminder_preferences.get('lead_times', []) %}checked{% endif %}>
+                        <label class="form-check-label small" for="lead_2h">
+                            2 Hours Prior (Same Day)
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="lead_1w" name="lead_times" value="1w" {% if '1w' in current_user.reminder_preferences.get('lead_times', []) %}checked{% endif %}>
+                        <label class="form-check-label small" for="lead_1w">
+                            1 Week Prior (Advance Notice)
+                        </label>
+                    </div>
+
+                    <!-- Voice Consent Checkbox -->
+                    <div class="form-check mb-3 p-2 bg-light border rounded">
+                        <input class="form-check-input ms-0 me-2" type="checkbox" id="voice_opt_in" name="voice_opt_in" value="1" {% if current_user.voice_opt_in %}checked{% endif %}>
+                        <label class="form-check-label small text-muted" for="voice_opt_in">
+                            I authorize MediVault to place automated voice calls to my registered phone number regarding scheduled appointments.
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-mv-primary btn-sm w-100">
+                        <i class="bi bi-save me-1"></i> Save Reminder Preferences
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

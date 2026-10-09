@@ -1,0 +1,172 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Doctor Appointments – MediVault{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+    <div>
+        <h1 class="h4 fw-bold mb-1" style="color: var(--mv-navy);">Clinical & Doctor Appointments</h1>
+        <p class="text-muted small mb-0">Schedule consultations, maintain visit logs, and track healthcare appointments</p>
+    </div>
+    <div>
+        <a href="{{ url_for('appointments.add') }}" class="btn btn-mv-primary btn-sm">
+            <i class="bi bi-calendar-plus me-1"></i> Schedule New Appointment
+        </a>
+    </div>
+</div>
+
+<!-- Status Filter Tabs & Search Card -->
+<div class="mv-card p-3 mb-4 bg-white">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <!-- Filter Tabs -->
+        <div class="btn-group btn-group-sm" role="group">
+            <a href="{{ url_for('appointments.index', status='all', q=search_query) }}" class="btn {% if status_filter == 'all' %}btn-mv-primary{% else %}btn-outline-secondary{% endif %}">
+                All ({{ total_count }})
+            </a>
+            <a href="{{ url_for('appointments.index', status='upcoming', q=search_query) }}" class="btn {% if status_filter == 'upcoming' %}btn-mv-primary{% else %}btn-outline-secondary{% endif %}">
+                <i class="bi bi-calendar-event me-1"></i> Upcoming ({{ upcoming_count }})
+            </a>
+            <a href="{{ url_for('appointments.index', status='completed', q=search_query) }}" class="btn {% if status_filter == 'completed' %}btn-mv-primary{% else %}btn-outline-secondary{% endif %}">
+                <i class="bi bi-check2-all me-1"></i> Completed ({{ completed_count }})
+            </a>
+            <a href="{{ url_for('appointments.index', status='cancelled', q=search_query) }}" class="btn {% if status_filter == 'cancelled' %}btn-mv-primary{% else %}btn-outline-secondary{% endif %}">
+                <i class="bi bi-x-circle me-1"></i> Cancelled ({{ cancelled_count }})
+            </a>
+        </div>
+
+        <!-- Search Form -->
+        <form method="GET" action="{{ url_for('appointments.index') }}" class="d-flex gap-2">
+            <input type="hidden" name="status" value="{{ status_filter }}">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" name="q" value="{{ search_query }}" placeholder="Search doctor, location, purpose...">
+            </div>
+            <button type="submit" class="btn btn-mv-secondary btn-sm">Search</button>
+            {% if search_query %}
+                <a href="{{ url_for('appointments.index', status=status_filter) }}" class="btn btn-outline-danger btn-sm" title="Clear Search">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Appointments Table Card -->
+<div class="mv-card">
+    <div class="mv-card-header">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-calendar2-check text-info"></i>
+            <span>Appointments Log ({{ appointments | length }})</span>
+        </div>
+    </div>
+    <div class="mv-card-body p-0">
+        {% if appointments %}
+            <div class="table-responsive">
+                <table class="table mv-table align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 22%;">Doctor / Hospital Name</th>
+                            <th style="width: 18%;">Date & Time</th>
+                            <th style="width: 20%;">Location</th>
+                            <th style="width: 20%;">Purpose of Visit</th>
+                            <th style="width: 10%;">Status</th>
+                            <th style="width: 10%;" class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for apt in appointments %}
+                            <tr>
+                                <td>
+                                    <strong class="text-dark d-block">{{ apt.doctor_hospital_name }}</strong>
+                                    {% if apt.notes %}
+                                        <div class="small text-muted text-truncate max-w-200" title="{{ apt.notes }}">{{ apt.notes }}</div>
+                                    {% endif %}
+                                </td>
+                                <td class="small">
+                                    <div class="fw-semibold text-dark"><i class="bi bi-calendar3 me-1 text-primary"></i> {{ apt.appointment_date | friendly_date }}</div>
+                                    <div class="text-muted"><i class="bi bi-clock me-1"></i> {{ apt.appointment_time }}</div>
+                                </td>
+                                <td class="small">
+                                    <i class="bi bi-geo-alt me-1 text-muted"></i> {{ apt.location }}
+                                </td>
+                                <td class="small">
+                                    {{ apt.purpose }}
+                                </td>
+                                <td>
+                                    {% if apt.status == 'Upcoming' %}
+                                        <span class="badge-mv upcoming"><i class="bi bi-hourglass-split"></i> Upcoming</span>
+                                    {% elif apt.status == 'Completed' %}
+                                        <span class="badge-mv completed"><i class="bi bi-check-circle-fill"></i> Completed</span>
+                                    {% elif apt.status == 'Cancelled' %}
+                                        <span class="badge-mv cancelled"><i class="bi bi-x-circle-fill"></i> Cancelled</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('appointments.edit', appointment_id=apt.id) }}" class="btn btn-outline-secondary" title="Edit Appointment">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        
+                                        <!-- Quick Status Dropdown -->
+                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span class="visually-hidden">Toggle Dropdown</span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm small">
+                                            <li><h6 class="dropdown-header">Change Status</h6></li>
+                                            {% if apt.status != 'Completed' %}
+                                                <li>
+                                                    <form method="POST" action="{{ url_for('appointments.update_status', appointment_id=apt.id) }}">
+                                                        <input type="hidden" name="status" value="Completed">
+                                                        <button type="submit" class="dropdown-item text-success"><i class="bi bi-check-circle me-2"></i>Mark as Completed</button>
+                                                    </form>
+                                                </li>
+                                            {% endif %}
+                                            {% if apt.status != 'Cancelled' %}
+                                                <li>
+                                                    <form method="POST" action="{{ url_for('appointments.update_status', appointment_id=apt.id) }}">
+                                                        <input type="hidden" name="status" value="Cancelled">
+                                                        <button type="submit" class="dropdown-item text-warning"><i class="bi bi-x-circle me-2"></i>Mark as Cancelled</button>
+                                                    </form>
+                                                </li>
+                                            {% endif %}
+                                            {% if apt.status != 'Upcoming' %}
+                                                <li>
+                                                    <form method="POST" action="{{ url_for('appointments.update_status', appointment_id=apt.id) }}">
+                                                        <input type="hidden" name="status" value="Upcoming">
+                                                        <button type="submit" class="dropdown-item text-primary"><i class="bi bi-hourglass me-2"></i>Set as Upcoming</button>
+                                                    </form>
+                                                </li>
+                                            {% endif %}
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <form method="POST" action="{{ url_for('appointments.delete', appointment_id=apt.id) }}">
+                                                    <button type="submit" class="dropdown-item text-danger btn-confirm-delete" data-item-name="appointment with {{ apt.doctor_hospital_name }}"><i class="bi bi-trash me-2"></i>Delete Visit</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 px-3">
+                <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                <h5 class="fw-bold mt-2">No appointments found</h5>
+                <p class="text-muted small mb-3">
+                    {% if search_query or status_filter != 'all' %}
+                        Try changing your search keywords or status filter.
+                    {% else %}
+                        You have not scheduled any upcoming medical visits.
+                    {% endif %}
+                </p>
+                <a href="{{ url_for('appointments.add') }}" class="btn btn-mv-primary btn-sm">
+                    <i class="bi bi-calendar-plus me-1"></i> Schedule an Appointment
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

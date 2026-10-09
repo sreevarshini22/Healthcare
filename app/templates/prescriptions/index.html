@@ -1,0 +1,150 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Prescription Management – MediVault{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+    <div>
+        <h1 class="h4 fw-bold mb-1" style="color: var(--mv-navy);">Prescription Management & Medication Log</h1>
+        <p class="text-muted small mb-0">Record prescribed medications, doctor instructions, and paper prescription scans</p>
+    </div>
+    <div>
+        <a href="{{ url_for('prescriptions.add') }}" class="btn btn-mv-success btn-sm">
+            <i class="bi bi-plus-circle me-1"></i> Add Prescription
+        </a>
+    </div>
+</div>
+
+<!-- Clinical Safety Notice -->
+<div class="mv-clinical-disclaimer">
+    <i class="bi bi-info-circle-fill me-2"></i>
+    <strong>Clinical Safety Notice:</strong> MediVault preserves your prescription details exactly as entered for personal record-keeping. MediVault does not recommend medicines, evaluate contraindications, or alter prescribed dosages. Always follow your licensed physician's instructions.
+</div>
+
+<!-- Filter Tabs & Search Card -->
+<div class="mv-card p-3 mb-4 bg-white">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <!-- Filter Tabs (Active vs Archived) -->
+        <div class="btn-group btn-group-sm" role="group">
+            <a href="{{ url_for('prescriptions.index', archived='0', q=search_query) }}" class="btn {% if not show_archived %}btn-mv-primary{% else %}btn-outline-secondary{% endif %}">
+                <i class="bi bi-capsule me-1"></i> Active Prescriptions ({{ active_count }})
+            </a>
+            <a href="{{ url_for('prescriptions.index', archived='1', q=search_query) }}" class="btn {% if show_archived %}btn-mv-primary{% else %}btn-outline-secondary{% endif %}">
+                <i class="bi bi-archive me-1"></i> Archived / Past ({{ archived_count }})
+            </a>
+        </div>
+
+        <!-- Search Input -->
+        <form method="GET" action="{{ url_for('prescriptions.index') }}" class="d-flex gap-2">
+            <input type="hidden" name="archived" value="{{ '1' if show_archived else '0' }}">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" name="q" value="{{ search_query }}" placeholder="Search prescription, medicine, doctor...">
+            </div>
+            <button type="submit" class="btn btn-mv-secondary btn-sm">Search</button>
+            {% if search_query %}
+                <a href="{{ url_for('prescriptions.index', archived='1' if show_archived else '0') }}" class="btn btn-outline-danger btn-sm" title="Clear Search">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Prescriptions List -->
+<div class="mv-card">
+    <div class="mv-card-header">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-capsule text-success"></i>
+            <span>{{ 'Archived Prescriptions' if show_archived else 'Active Prescriptions' }} ({{ prescriptions | length }})</span>
+        </div>
+    </div>
+    <div class="mv-card-body p-0">
+        {% if prescriptions %}
+            <div class="table-responsive">
+                <table class="table mv-table align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Prescription Title</th>
+                            <th style="width: 15%;">Prescription Date</th>
+                            <th style="width: 18%;">Prescribing Physician</th>
+                            <th style="width: 25%;">Medication Details</th>
+                            <th style="width: 17%;" class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rx in prescriptions %}
+                            <tr>
+                                <td>
+                                    <strong class="text-dark d-block">{{ rx.title }}</strong>
+                                    {% if rx.stored_filename %}
+                                        <a href="{{ url_for('prescriptions.download_file', prescription_id=rx.id) }}" target="_blank" class="small text-decoration-none">
+                                            <i class="bi bi-paperclip text-primary"></i> Attached Scan ({{ rx.original_filename }})
+                                        </a>
+                                    {% endif %}
+                                </td>
+                                <td class="small">
+                                    <i class="bi bi-calendar-check me-1 text-muted"></i> {{ rx.date | friendly_date }}
+                                </td>
+                                <td class="small">
+                                    {% if rx.doctor_name %}
+                                        <i class="bi bi-person-badge text-muted me-1"></i> {{ rx.doctor_name }}
+                                    {% else %}
+                                        <span class="text-muted fst-italic">Not specified</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rx.medications_info %}
+                                        <div class="small text-secondary bg-light p-2 rounded border" style="white-space: pre-line; max-height: 90px; overflow-y: auto;">{{ rx.medications_info }}</div>
+                                    {% else %}
+                                        <span class="text-muted small fst-italic">No medication notes entered</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        {% if rx.stored_filename %}
+                                            <a href="{{ url_for('prescriptions.download_file', prescription_id=rx.id, download=1) }}" class="btn btn-outline-secondary" title="Download Document">
+                                                <i class="bi bi-download"></i>
+                                            </a>
+                                        {% endif %}
+                                        <a href="{{ url_for('prescriptions.edit', prescription_id=rx.id) }}" class="btn btn-outline-secondary" title="Edit Prescription">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form method="POST" action="{{ url_for('prescriptions.toggle_archive', prescription_id=rx.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-secondary" title="{{ 'Restore to Active' if rx.is_archived else 'Move to Archive' }}">
+                                                <i class="bi {{ 'bi-arrow-counterclockwise' if rx.is_archived else 'bi-archive' }}"></i>
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('prescriptions.delete', prescription_id=rx.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-danger btn-confirm-delete" data-item-name="{{ rx.title }}" title="Delete Prescription">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 px-3">
+                <i class="bi bi-capsule text-muted" style="font-size: 3rem;"></i>
+                <h5 class="fw-bold mt-2">No prescriptions found</h5>
+                <p class="text-muted small mb-3">
+                    {% if show_archived %}
+                        You have no archived prescriptions.
+                    {% else %}
+                        Keep your current medications and paper prescription scans organized in one place.
+                    {% endif %}
+                </p>
+                {% if not show_archived %}
+                    <a href="{{ url_for('prescriptions.add') }}" class="btn btn-mv-success btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i> Add Your First Prescription
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

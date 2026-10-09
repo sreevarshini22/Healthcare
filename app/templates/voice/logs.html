@@ -1,0 +1,152 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}AI Voice Reminder Agent – MediVault{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+    <div>
+        <h1 class="h4 fw-bold mb-1" style="color: var(--mv-navy);">
+            <i class="bi bi-telephone-outbound text-success me-2"></i>AI Voice Reminder Agent
+        </h1>
+        <p class="text-muted small mb-0">Automated telephony calling service for interactive clinical appointment reminders</p>
+    </div>
+    <div>
+        <a href="{{ url_for('notifications.index') }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-sliders me-1"></i> Voice Alert Preferences
+        </a>
+    </div>
+</div>
+
+<!-- Voice Agent Safety & Privacy Banner -->
+<div class="mv-clinical-disclaimer mb-4">
+    <i class="bi bi-shield-check me-2 text-success"></i>
+    <strong>Telephony Privacy Standard:</strong> MediVault Voice Agent uses automated text-to-speech to remind you of appointment times, physician names, and locations. To protect your private health information, the agent never mentions detailed diagnostic findings or test results over the phone.
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Voice Call Logs History -->
+    <div class="col-lg-8">
+        <div class="mv-card">
+            <div class="mv-card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-journal-text text-primary"></i>
+                    <span>Voice Call History &amp; IVR Responses ({{ call_logs | length }})</span>
+                </div>
+            </div>
+            <div class="mv-card-body p-0">
+                {% if call_logs %}
+                    <div class="table-responsive">
+                        <table class="table mv-table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Date &amp; Time</th>
+                                    <th>Phone Number</th>
+                                    <th>Telephony Status</th>
+                                    <th>Patient IVR Response</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for call in call_logs %}
+                                    <tr>
+                                        <td class="small">
+                                            <div class="fw-semibold text-dark">{{ call.created_at | friendly_date }}</div>
+                                            <div class="text-muted font-monospace" style="font-size: 0.72rem;">{{ call.call_sid }}</div>
+                                        </td>
+                                        <td class="small text-muted">
+                                            {{ call.to_phone }}
+                                        </td>
+                                        <td>
+                                            {% if call.status == 'Completed' or call.status == 'Simulated-Success' %}
+                                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> {{ call.status }}</span>
+                                            {% elif call.status == 'Failed' %}
+                                                <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i> Failed</span>
+                                            {% elif call.status == 'Initiated' %}
+                                                <span class="badge bg-info"><i class="bi bi-telephone-outbound me-1"></i> Initiated</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ call.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if call.user_response == 'Confirmed Attendance' %}
+                                                <span class="badge bg-success"><i class="bi bi-calendar-check me-1"></i> Confirmed Attendance</span>
+                                            {% elif call.user_response == 'Reschedule Requested' %}
+                                                <span class="badge bg-warning text-dark"><i class="bi bi-arrow-repeat me-1"></i> Reschedule Requested</span>
+                                            {% elif call.user_response == 'Opted Out' %}
+                                                <span class="badge bg-danger"><i class="bi bi-bell-slash me-1"></i> Opted Out</span>
+                                            {% elif call.user_response %}
+                                                <span class="badge bg-light text-dark border">{{ call.user_response }}</span>
+                                            {% else %}
+                                                <span class="text-muted small fst-italic">No IVR response</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 px-3">
+                        <i class="bi bi-telephone-x text-muted" style="font-size: 2.8rem;"></i>
+                        <h6 class="fw-bold mt-2">No Voice Calls Recorded Yet</h6>
+                        <p class="text-muted small mb-0">Automated phone call reminders initiated by the scheduler or tested manually will appear here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Trigger Test Call & Voice Info -->
+    <div class="col-lg-4">
+        <!-- Manual Test Trigger Card -->
+        <div class="mv-card mb-4">
+            <div class="mv-card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-play-circle text-primary"></i>
+                    <span>Trigger Reminder Call</span>
+                </div>
+            </div>
+            <div class="mv-card-body p-3">
+                {% if upcoming_appointments %}
+                    <p class="small text-muted mb-3">
+                        Select an upcoming clinical visit below to trigger an automated reminder call to <strong>{{ current_user.phone_number or 'your phone number' }}</strong>:
+                    </p>
+                    <div class="d-flex flex-column gap-2">
+                        {% for apt in upcoming_appointments %}
+                            <div class="p-2 border rounded bg-light d-flex justify-content-between align-items-center">
+                                <div class="overflow-hidden me-2">
+                                    <strong class="d-block text-truncate small text-dark">{{ apt.doctor_hospital_name }}</strong>
+                                    <span class="text-muted small" style="font-size: 0.75rem;">{{ apt.appointment_date }} at {{ apt.appointment_time }}</span>
+                                </div>
+                                <form method="POST" action="{{ url_for('voice.trigger_call', appointment_id=apt.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-mv-primary py-1 px-2" title="Trigger voice call">
+                                        <i class="bi bi-telephone me-1"></i> Call
+                                    </button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="small text-muted mb-2">You currently have no upcoming visits scheduled.</p>
+                    <a href="{{ url_for('appointments.add') }}" class="btn btn-mv-primary btn-sm w-100">
+                        <i class="bi bi-calendar-plus me-1"></i> Schedule an Appointment
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Telephony Information Card -->
+        <div class="mv-card p-4">
+            <h6 class="fw-bold mb-2" style="color: var(--mv-navy);">How Voice Reminders Work</h6>
+            <ul class="text-muted small ps-3 mb-3 d-flex flex-column gap-2">
+                <li>Calls are placed 24 hours prior to scheduled medical appointments.</li>
+                <li>Keypad recognition captures your confirmation (Press 1) or reschedule request (Press 2).</li>
+                <li>You can opt out anytime by pressing 3 or updating your notification settings.</li>
+            </ul>
+            <div class="p-2 bg-light border rounded small text-muted">
+                <i class="bi bi-info-circle text-primary me-1"></i>
+                Calls are logged with complete status timestamps for compliance.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

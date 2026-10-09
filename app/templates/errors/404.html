@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found (404) – MediVault{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="mv-card p-5 max-w-600 mx-auto">
+        <div class="text-primary mb-3">
+            <i class="bi bi-file-earmark-break" style="font-size: 4rem;"></i>
+        </div>
+        <h1 class="h3 fw-bold mb-2">404 – Record or Page Not Found</h1>
+        <p class="text-muted mb-4">
+            The page, record, or document you requested could not be located. It may have been moved, renamed, or deleted.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('dashboard.index') if current_user.is_authenticated else url_for('main.index') }}" class="btn btn-mv-primary">
+                Return to Safe Ground
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

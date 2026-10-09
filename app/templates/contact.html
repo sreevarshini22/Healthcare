@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Support – Personal Health Record Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Contact Us</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="mv-card p-4">
+                <h1 class="h3 fw-bold mb-2" style="color: var(--mv-navy);">Contact Support & Inquiries</h1>
+                <p class="text-muted small mb-4">
+                    Have questions about your health records, document formats, or account security? Send us a message and our support desk will respond promptly.
+                </p>
+
+                <form method="POST" action="{{ url_for('main.contact') }}">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ name or (current_user.full_name if current_user.is_authenticated else '') }}" required placeholder="e.g. Eleanor Vance">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ email or (current_user.email if current_user.is_authenticated else '') }}" required placeholder="e.g. eleanor@example.com">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Subject</label>
+                        <select class="form-select" id="subject" name="subject">
+                            <option value="General Inquiry">General Inquiry</option>
+                            <option value="Account & Login Assistance">Account & Login Assistance</option>
+                            <option value="Document Upload Question">Document Upload Question</option>
+                            <option value="Privacy & Security Concern">Privacy & Security Concern</option>
+                            <option value="Feedback / Feature Request">Feedback / Feature Request</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="message" class="form-label">Message Details <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="message" name="message" rows="5" required placeholder="Please describe how we can help you with your health record management...">{{ message or '' }}</textarea>
+                        <div class="form-text">Please do not include sensitive diagnostic lab results or emergency clinical symptoms in this form.</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-mv-primary px-4">
+                        <i class="bi bi-send me-1"></i> Send Support Message
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="mv-card p-4 mb-4">
+                <h5 class="fw-bold mb-3">Support Center</h5>
+                
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <div class="mv-stat-icon blue" style="width: 40px; height: 40px; font-size: 1.1rem;">
+                        <i class="bi bi-geo-alt"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block text-dark">Office Location</strong>
+                        <span class="text-muted small">742 Evergreen Healthcare Blvd, Suite 400, Boston, MA 02115</span>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <div class="mv-stat-icon green" style="width: 40px; height: 40px; font-size: 1.1rem;">
+                        <i class="bi bi-telephone"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block text-dark">Toll-Free Phone</strong>
+                        <span class="text-muted small">1-800-555-VAULT (8285)<br>Mon – Fri, 8:00 AM – 6:00 PM EST</span>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start gap-3 mb-4">
+                    <div class="mv-stat-icon navy" style="width: 40px; height: 40px; font-size: 1.1rem;">
+                        <i class="bi bi-envelope"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block text-dark">Support Email</strong>
+                        <span class="text-muted small">support@medivault-health.org</span>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light rounded border text-muted small">
+                    <i class="bi bi-shield-lock-fill text-success me-1"></i>
+                    All inquiries are handled in accordance with our strict data privacy policies.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

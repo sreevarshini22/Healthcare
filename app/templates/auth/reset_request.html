@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Password Recovery – MediVault{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-5">
+            <div class="mv-card shadow-sm">
+                <div class="mv-card-header text-center d-block py-3 bg-white border-bottom">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-light text-primary rounded-circle mb-2" style="width: 50px; height: 50px;">
+                        <i class="bi bi-key-fill fs-4 text-primary"></i>
+                    </div>
+                    <h2 class="h5 fw-bold mb-1" style="color: var(--mv-navy);">Password Recovery</h2>
+                    <p class="text-muted small mb-0">Reset access to your personal health vault</p>
+                </div>
+
+                <div class="mv-card-body p-4">
+                    {% if reset_url %}
+                        <div class="alert alert-success">
+                            <h6 class="fw-bold mb-2"><i class="bi bi-check-circle-fill me-1"></i> Security Reset Token Generated</h6>
+                            <p class="small mb-3">For demonstration purposes, click the direct reset link below to proceed with setting your new password:</p>
+                            <a href="{{ reset_url }}" class="btn btn-sm btn-success w-100 py-2">
+                                <i class="bi bi-arrow-right-circle me-1"></i> Open Password Reset Form
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted small mb-4">
+                            Enter your registered email address below. A cryptographically secure password reset token will be generated to restore account access.
+                        </p>
+
+                        <form method="POST" action="{{ url_for('auth.forgot_password') }}">
+                            <div class="mb-4">
+                                <label for="email" class="form-label">Registered Email Address <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" class="form-control" id="email" name="email" required placeholder="name@example.com">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-mv-primary w-100 py-2 mb-3">
+                                <i class="bi bi-shield-lock me-1"></i> Generate Recovery Link
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+
+                <div class="mv-card-footer text-center py-3">
+                    <a href="{{ url_for('auth.login') }}" class="small text-muted"><i class="bi bi-arrow-left me-1"></i> Return to Sign In</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

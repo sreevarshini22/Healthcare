@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ current_user.theme_preference if current_user.is_authenticated else 'light' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MediVault - Secure, classical personal health record manager. Organize medical records, prescriptions, appointments, and AI-powered health insights securely.">
+    <title>{% block title %}Personal Health Record Manager{% endblock %} – {{ app_name }}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Custom MediVault Classical CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Top Utility Bar -->
+    <div class="mv-topbar">
+        <div class="container-fluid px-lg-5 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <span><i class="bi bi-shield-lock-fill text-success me-1"></i> Patient Confidentiality & Encrypted Records</span>
+                <span class="d-none d-md-inline text-muted">|</span>
+                <span class="d-none d-md-inline"><i class="bi bi-telephone-fill me-1"></i> Support: 1-800-555-VAULT</span>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted p-0" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
+                    <i id="theme-toggle-icon" class="bi bi-moon-stars-fill"></i>
+                    <span id="theme-toggle-text" class="d-none d-sm-inline ms-1 font-monospace" style="font-size: 0.78rem;">Theme</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Classical Healthcare Navigation Bar -->
+    <nav class="navbar navbar-expand-lg mv-navbar">
+        <div class="container-fluid px-lg-5">
+            <!-- Brand Logo with Medical Icon -->
+            <a class="navbar-brand" href="{{ url_for('main.index') if not current_user.is_authenticated else url_for('dashboard.index') }}">
+                <span class="d-inline-flex align-items-center justify-content-center bg-white text-primary rounded px-2 py-1 shadow-sm" style="color: var(--mv-navy) !important;">
+                    <i class="bi bi-heart-pulse-fill text-danger me-1"></i>
+                    <strong style="color: var(--mv-navy); font-size: 1.15rem;">Medi</strong><span style="color: var(--mv-green); font-weight: 700;">Vault</span>
+                </span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#medivaultNavbar" aria-controls="medivaultNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="medivaultNavbar">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">
+                            <i class="bi bi-house-door me-1"></i> Home
+                        </a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}" href="{{ url_for('dashboard.index') }}">
+                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('records.') %}active{% endif %}" href="{{ url_for('records.index') }}">
+                            <i class="bi bi-folder2-open me-1"></i> Records
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('prescriptions.') %}active{% endif %}" href="{{ url_for('prescriptions.index') }}">
+                            <i class="bi bi-capsule me-1"></i> Prescriptions
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('appointments.') %}active{% endif %}" href="{{ url_for('appointments.index') }}">
+                            <i class="bi bi-calendar-event me-1"></i> Appointments
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('ai.') %}active{% endif %}" href="{{ url_for('ai.chat') }}">
+                            <i class="bi bi-chat-heart me-1 text-info"></i> AI Assistant
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.about' %}active{% endif %}" href="{{ url_for('main.about') }}">
+                            <i class="bi bi-info-circle me-1"></i> About Us
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.contact' %}active{% endif %}" href="{{ url_for('main.contact') }}">
+                            <i class="bi bi-envelope me-1"></i> Contact
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-3">
+                    {% if current_user.is_authenticated %}
+                        <!-- Notification Center Bell Icon -->
+                        <a href="{{ url_for('notifications.index') }}" class="btn btn-sm btn-outline-light position-relative p-2" title="Notification Center">
+                            <i class="bi bi-bell-fill fs-6"></i>
+                            {% if unread_notif_count and unread_notif_count > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light" style="font-size: 0.65rem;">
+                                    {{ unread_notif_count }}
+                                    <span class="visually-hidden">unread notifications</span>
+                                </span>
+                            {% endif %}
+                        </a>
+
+                        <div class="dropdown">
+                            <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle fs-6"></i>
+                                <span>{{ current_user.full_name }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li><h6 class="dropdown-header">{{ current_user.email }}</h6></li>
+                                <li><a class="dropdown-item" href="{{ url_for('dashboard.index') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('ai.chat') }}"><i class="bi bi-chat-heart me-2 text-info"></i>AI Records Chat</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('notifications.index') }}"><i class="bi bi-bell me-2"></i>Notifications</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('voice.logs') }}"><i class="bi bi-telephone-outbound me-2"></i>Voice Call Logs</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="bi bi-gear me-2"></i>Account Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-sm px-3">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Login
+                        </a>
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-mv-success btn-sm px-3">
+                            <i class="bi bi-person-plus-fill me-1"></i> Create Account
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Notification Messages -->
+    <div class="container-fluid px-lg-5 mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show mv-alert d-flex align-items-center gap-2 mb-3" role="alert">
+                        {% if category == 'success' %}
+                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        {% elif category == 'danger' or category == 'error' %}
+                            <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+                        {% elif category == 'warning' %}
+                            <i class="bi bi-exclamation-circle-fill text-warning fs-5"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle-fill text-primary fs-5"></i>
+                        {% endif %}
+                        <div class="flex-grow-1">{{ message }}</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Dynamic Application Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Classical Healthcare Website Footer -->
+    <footer class="mv-footer">
+        <div class="container-fluid px-lg-5">
+            <div class="row g-4 mb-4">
+                <!-- Column 1: Brand & Purpose -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="d-inline-flex align-items-center justify-content-center bg-white text-primary rounded px-2 py-1 shadow-sm">
+                            <i class="bi bi-heart-pulse-fill text-danger me-1"></i>
+                            <strong style="color: var(--mv-navy);">Medi</strong><span style="color: var(--mv-green); font-weight: 700;">Vault</span>
+                        </span>
+                    </div>
+                    <p class="text-muted small mb-3">
+                        A secure personal health record management system engineered to organize medical reports, track prescriptions, schedule appointments, and provide private AI-powered clinical insights.
+                    </p>
+                    <div class="small text-muted d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-check text-success"></i>
+                        <span>Zero public exposure &bull; HIPAA &amp; GDPR Aligned</span>
+                    </div>
+                </div>
+
+                <!-- Column 2: Patient Portal Links -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="mv-footer-heading">Patient Portal</h6>
+                    <ul class="list-unstyled mv-footer-links small">
+                        <li><a href="{{ url_for('records.index') if current_user.is_authenticated else url_for('auth.login') }}">Medical Records</a></li>
+                        <li><a href="{{ url_for('prescriptions.index') if current_user.is_authenticated else url_for('auth.login') }}">Prescription Log</a></li>
+                        <li><a href="{{ url_for('appointments.index') if current_user.is_authenticated else url_for('auth.login') }}">Appointments</a></li>
+                        <li><a href="{{ url_for('ai.chat') if current_user.is_authenticated else url_for('auth.login') }}">AI Records Assistant</a></li>
+                        <li><a href="{{ url_for('notifications.index') if current_user.is_authenticated else url_for('auth.login') }}">Notification Center</a></li>
+                        <li><a href="{{ url_for('voice.logs') if current_user.is_authenticated else url_for('auth.login') }}">Voice Reminders</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 3: Platform Information -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="mv-footer-heading">Information</h6>
+                    <ul class="list-unstyled mv-footer-links small">
+                        <li><a href="{{ url_for('main.about') }}">About MediVault</a></li>
+                        <li><a href="{{ url_for('main.privacy') }}">Privacy Policy</a></li>
+                        <li><a href="{{ url_for('main.terms') }}">Terms of Service</a></li>
+                        <li><a href="{{ url_for('main.contact') }}">Contact Support</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 4: Clinical Disclaimer -->
+                <div class="col-lg-4 col-md-6">
+                    <h6 class="mv-footer-heading">Important Clinical Notice</h6>
+                    <p class="small text-muted mb-2">
+                        MediVault is an archival and organization tool. MediVault does not provide emergency medical diagnosis, clinical evaluation, or prescription modifications. In case of a medical emergency, call 911 or your local emergency services immediately.
+                    </p>
+                    <p class="small text-muted">
+                        <i class="bi bi-clock me-1"></i> Patient Support: Mon &ndash; Fri, 8:00 AM &ndash; 6:00 PM EST.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mv-footer-bottom d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+                <div>
+                    &copy; {{ current_year }} MediVault (Personal Health Record Manager). All rights reserved.
+                </div>
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('main.privacy') }}" class="small">Privacy Policy</a>
+                    <span class="text-secondary">&bull;</span>
+                    <a href="{{ url_for('main.terms') }}" class="small">Terms of Use</a>
+                    <span class="text-secondary">&bull;</span>
+                    <a href="{{ url_for('main.contact') }}" class="small">Security Helpdesk</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- MediVault Main JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

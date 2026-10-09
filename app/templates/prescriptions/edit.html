@@ -1,0 +1,84 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Edit Prescription: {{ prescription.title }} – MediVault{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('prescriptions.index') }}">Prescriptions</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit {{ prescription.title }}</li>
+        </ol>
+    </nav>
+    <h1 class="h4 fw-bold mb-1" style="color: var(--mv-navy);">Edit Prescription Information</h1>
+    <p class="text-muted small mb-0">Update dosage logs, prescribing doctor, or attached documents</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="mv-card">
+            <div class="mv-card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-pencil-square text-success"></i>
+                    <span>Modify Prescription Record</span>
+                </div>
+            </div>
+            <div class="mv-card-body p-4">
+                <form method="POST" action="{{ url_for('prescriptions.edit', prescription_id=prescription.id) }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Prescription Title / Condition <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ prescription.title }}" required>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="date" class="form-label">Prescription Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="date" name="date" value="{{ prescription.date.isoformat() }}" required max="{{ today_date }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="doctor_name" class="form-label">Prescribing Physician</label>
+                            <input type="text" class="form-control" id="doctor_name" name="doctor_name" value="{{ prescription.doctor_name or '' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="medications_info" class="form-label">Medications & Dosage Instructions</label>
+                        <textarea class="form-control" id="medications_info" name="medications_info" rows="5">{{ prescription.medications_info or '' }}</textarea>
+                    </div>
+
+                    <!-- Current Document & Replacement -->
+                    <div class="mb-3">
+                        <label class="form-label">Prescription Document Scan</label>
+                        {% if prescription.stored_filename %}
+                            <div class="p-3 bg-light rounded border mb-2 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-paperclip text-success me-1"></i>
+                                    <span class="fw-bold">{{ prescription.original_filename }}</span>
+                                    <span class="text-muted small">({{ prescription.file_size | format_bytes }})</span>
+                                </div>
+                                <a href="{{ url_for('prescriptions.download_file', prescription_id=prescription.id, download=1) }}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                            </div>
+                        {% endif %}
+                        <div class="form-text mb-2">To attach or replace the prescription scan, choose a new file below:</div>
+                        <input type="file" class="form-control" id="document_file" name="document_file" accept=".pdf,.png,.jpg,.jpeg,.webp">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="notes" class="form-label">Pharmacy / Refill Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="2">{{ prescription.notes or '' }}</textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-mv-primary px-4">
+                            <i class="bi bi-save me-1"></i> Save Updates
+                        </button>
+                        <a href="{{ url_for('prescriptions.index') }}" class="btn btn-mv-secondary px-3">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

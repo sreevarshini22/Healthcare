@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 text-center py-5">
+            <!-- MediVault Logo & Identity -->
+            <div class="mb-4">
+                <span class="d-inline-flex align-items-center justify-content-center bg-light border rounded px-4 py-2 shadow-sm">
+                    <i class="bi bi-heart-pulse-fill text-danger fs-2 me-2"></i>
+                    <span class="fs-2 fw-bold" style="color: var(--mv-navy);">Medi</span><span class="fs-2 fw-bold" style="color: var(--mv-green);">Vault</span>
+                </span>
+            </div>
+
+            {% if not current_user.is_authenticated %}
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 mt-4">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-mv-primary btn-lg px-4 py-2 fw-semibold shadow-sm">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-mv-secondary btn-lg px-4 py-2 fw-semibold shadow-sm">
+                        <i class="bi bi-person-plus-fill me-2"></i>Create Account
+                    </a>
+                </div>
+            {% else %}
+                <div class="card border shadow-sm p-4 bg-white mt-4 text-center">
+                    <h5 class="fw-bold mb-3" style="color: var(--mv-navy);">Signed In as {{ current_user.full_name }}</h5>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-mv-primary px-4">
+                            <i class="bi bi-speedometer2 me-2"></i>Open Dashboard
+                        </a>
+                        <a href="{{ url_for('records.index') }}" class="btn btn-mv-secondary px-4">
+                            <i class="bi bi-folder2-open me-2"></i>Medical Records
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

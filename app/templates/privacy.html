@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy – Personal Health Record Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Privacy Policy</li>
+        </ol>
+    </nav>
+
+    <div class="mv-card p-4 p-md-5 max-w-900 mx-auto">
+        <h1 class="h3 fw-bold mb-2" style="color: var(--mv-navy);">MediVault Patient Privacy Policy</h1>
+        <p class="text-muted small mb-4">Last Updated: October 2026 | Document ID: POL-PRIV-2026</p>
+
+        <div class="mv-clinical-disclaimer mb-4">
+            <i class="bi bi-shield-lock-fill me-2"></i>
+            <strong>Core Privacy Guarantee:</strong> MediVault does not sell, license, or share your personal health records, diagnostic tests, or prescription information with third-party advertisers or data brokers under any circumstances.
+        </div>
+
+        <section class="mb-4">
+            <h5 class="fw-bold">1. Information We Collect</h5>
+            <p class="text-muted small">
+                MediVault collects only the information necessary to provide you with secure personal health record management:
+            </p>
+            <ul class="text-muted small">
+                <li><strong>Account Information:</strong> Full name, verified email address, encrypted password hash, and optional contact details.</li>
+                <li><strong>Medical Documents:</strong> Diagnostic lab results, imaging reports, vaccination cards, and clinical notes uploaded by the user.</li>
+                <li><strong>Prescription Data:</strong> Medication schedules, prescribing doctor names, dates, and paper prescription scans uploaded by the user.</li>
+                <li><strong>Appointment Logs:</strong> Physician names, clinic locations, appointment times, and visit purpose entries created by the user.</li>
+            </ul>
+        </section>
+
+        <section class="mb-4">
+            <h5 class="fw-bold">2. Storage and Data Isolation</h5>
+            <p class="text-muted small">
+                All uploaded documents are stored in server-isolated directories segregated per user account. Access to any document requires an active, authenticated session with strict backend ownership verification. File names are obfuscated with cryptographic identifiers to prevent unauthorized directory enumeration.
+            </p>
+        </section>
+
+        <section class="mb-4">
+            <h5 class="fw-bold">3. Access Control and Authentication</h5>
+            <p class="text-muted small">
+                Passwords are hashed using industry-standard cryptographic algorithms (PBKDF2/Werkzeug hashing) with dynamic salts. We do not store plaintext passwords. Session tokens are secured with HttpOnly and SameSite cookie policies.
+            </p>
+        </section>
+
+        <section class="mb-4">
+            <h5 class="fw-bold">4. Right to Complete Erasure (Account Deletion)</h5>
+            <p class="text-muted small">
+                Users retain full rights to delete their account at any time via the Profile Settings portal. Upon confirming account deletion, MediVault permanently purges all uploaded files from physical storage and cascades deletion across all database tables.
+            </p>
+        </section>
+
+        <section class="mb-4">
+            <h5 class="fw-bold">5. Contact Our Privacy Officer</h5>
+            <p class="text-muted small">
+                If you have questions regarding this Privacy Policy or your personal health information rights, contact our Data Protection Officer at: <strong>privacy@medivault-health.org</strong>.
+            </p>
+        </section>
+    </div>
+</div>
+{% endblock %}

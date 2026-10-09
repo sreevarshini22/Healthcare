@@ -1,0 +1,80 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Edit Appointment: {{ appointment.doctor_hospital_name }} – MediVault{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('appointments.index') }}">Appointments</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit Appointment</li>
+        </ol>
+    </nav>
+    <h1 class="h4 fw-bold mb-1" style="color: var(--mv-navy);">Edit Appointment Details</h1>
+    <p class="text-muted small mb-0">Update schedule, location, visit purpose, or clinical status</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="mv-card">
+            <div class="mv-card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-pencil-square text-primary"></i>
+                    <span>Modify Appointment Entry</span>
+                </div>
+            </div>
+            <div class="mv-card-body p-4">
+                <form method="POST" action="{{ url_for('appointments.edit', appointment_id=appointment.id) }}">
+                    <div class="mb-3">
+                        <label for="doctor_hospital_name" class="form-label">Doctor or Clinic / Hospital Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="doctor_hospital_name" name="doctor_hospital_name" value="{{ appointment.doctor_hospital_name }}" required>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="appointment_date" class="form-label">Appointment Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="appointment_date" name="appointment_date" value="{{ appointment.appointment_date.isoformat() }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="appointment_time" class="form-label">Appointment Time <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" id="appointment_time" name="appointment_time" value="{{ appointment.appointment_time }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Location / Room / Virtual Link <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="location" name="location" value="{{ appointment.location }}" required>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label for="purpose" class="form-label">Purpose of Visit <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="purpose" name="purpose" value="{{ appointment.purpose }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="Upcoming" {% if appointment.status == 'Upcoming' %}selected{% endif %}>Upcoming</option>
+                                <option value="Completed" {% if appointment.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                <option value="Cancelled" {% if appointment.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="notes" class="form-label">Pre-visit Instructions & Follow-up Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3">{{ appointment.notes or '' }}</textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-mv-primary px-4">
+                            <i class="bi bi-save me-1"></i> Update Appointment
+                        </button>
+                        <a href="{{ url_for('appointments.index') }}" class="btn btn-mv-secondary px-3">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Add Prescription – MediVault{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('prescriptions.index') }}">Prescriptions</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Add Prescription</li>
+        </ol>
+    </nav>
+    <h1 class="h4 fw-bold mb-1" style="color: var(--mv-navy);">Add Prescription Details</h1>
+    <p class="text-muted small mb-0">Record prescribed medications, dosages, and attach scans</p>
+</div>
+
+<!-- Clinical Notice -->
+<div class="mv-clinical-disclaimer">
+    <i class="bi bi-shield-check me-2"></i>
+    <strong>Record-Keeping Notice:</strong> This tool is solely for personal archiving and medication schedule management. Do not modify prescribed medications or dosages without consulting your doctor.
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="mv-card">
+            <div class="mv-card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-capsule text-success"></i>
+                    <span>Prescription Information</span>
+                </div>
+            </div>
+            <div class="mv-card-body p-4">
+                <form method="POST" action="{{ url_for('prescriptions.add') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Prescription Title / Condition <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ title or '' }}" required placeholder="e.g. Hypertension Regimen or Post-Dental Care">
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="date" class="form-label">Prescription Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="date" name="date" value="{{ date or today_date }}" required max="{{ today_date }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="doctor_name" class="form-label">Prescribing Physician</label>
+                            <input type="text" class="form-control" id="doctor_name" name="doctor_name" value="{{ doctor_name or '' }}" placeholder="e.g. Dr. Robert Chen, MD">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="medications_info" class="form-label">Medications & Dosage Instructions</label>
+                        <textarea class="form-control" id="medications_info" name="medications_info" rows="4" placeholder="e.g.
+1. Lisinopril 10mg - Take 1 tablet daily every morning with water.
+2. Atorvastatin 20mg - Take 1 tablet daily in the evening after dinner.">{{ medications_info or '' }}</textarea>
+                        <div class="form-text">Include medication names, strengths, timings, and dietary instructions from your prescription.</div>
+                    </div>
+
+                    <!-- Optional Prescription Document Upload -->
+                    <div class="mb-3">
+                        <label for="document_file" class="form-label">Attach Prescription Document / Photo (Optional)</label>
+                        <input type="file" class="form-control" id="document_file" name="document_file" accept=".pdf,.png,.jpg,.jpeg,.webp">
+                        <div class="form-text">Upload a scanned PDF or photograph of the physical prescription pad (Max 16 MB).</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="notes" class="form-label">Pharmacy / Refill Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="e.g. CVS Pharmacy #4921, Refills remaining: 3">{{ notes or '' }}</textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-mv-success px-4">
+                            <i class="bi bi-save me-1"></i> Save Prescription
+                        </button>
+                        <a href="{{ url_for('prescriptions.index') }}" class="btn btn-mv-secondary px-3">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="mv-card p-4">
+            <h5 class="fw-bold mb-3">Medication Record Tips</h5>
+            <ul class="text-muted small ps-3 mb-3 d-flex flex-column gap-2">
+                <li>Document both generic and brand names of medications.</li>
+                <li>Note any specific instructions like "take with food" or "avoid direct sunlight".</li>
+                <li>Archive past prescriptions when a course of antibiotics or temporary treatments concludes.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

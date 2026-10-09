@@ -1,0 +1,218 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}AI Medical Records Assistant – MediVault{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3 pb-2 border-bottom">
+    <div>
+        <h1 class="h4 fw-bold mb-1" style="color: var(--mv-navy);">
+            <i class="bi bi-robot text-primary me-2"></i>AI Medical Records Assistant
+        </h1>
+        <p class="text-muted small mb-0">Ask questions and review insights grounded strictly in your personal health documents</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('ai.chat') }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i> New Question Session
+        </a>
+    </div>
+</div>
+
+<!-- Prominent Clinical Safety Disclaimer -->
+<div class="alert alert-warning d-flex align-items-start gap-2 py-2 px-3 mb-3 small" role="alert">
+    <i class="bi bi-exclamation-triangle-fill fs-5 text-warning flex-shrink-0"></i>
+    <div>
+        <strong>Clinical Advisory Notice:</strong> {{ disclaimer }}
+    </div>
+</div>
+
+{% if not current_user.ai_consent %}
+<!-- Privacy & Consent Notice Banner -->
+<div class="mv-card p-4 mb-4 border-primary bg-light">
+    <div class="d-flex align-items-start gap-3">
+        <div class="p-3 bg-white rounded-circle shadow-sm border text-primary">
+            <i class="bi bi-shield-check fs-2"></i>
+        </div>
+        <div>
+            <h5 class="fw-bold mb-1" style="color: var(--mv-navy);">User Consent Required for AI Document Retrieval</h5>
+            <p class="text-muted small mb-3">
+                To ask questions about your diagnostic reports, lab results, and prescriptions, MediVault AI needs your permission to read and retrieve excerpts from your uploaded files. Your documents remain strictly private to your account and are never used to train public AI models.
+            </p>
+            <form method="POST" action="{{ url_for('ai.update_consent') }}" class="d-inline">
+                <input type="hidden" name="ai_consent" value="1">
+                <button type="submit" class="btn btn-mv-primary btn-sm px-3">
+                    <i class="bi bi-check2-circle me-1"></i> Grant Consent &amp; Activate AI Assistant
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+    <!-- Chat Sessions Sidebar -->
+    <div class="col-lg-3 d-none d-lg-block">
+        <div class="mv-card h-100">
+            <div class="mv-card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock-history me-1"></i> Prior Sessions</span>
+                <span class="badge bg-secondary">{{ sessions | length }}</span>
+            </div>
+            <div class="mv-card-body p-2" style="max-height: 520px; overflow-y: auto;">
+                {% if sessions %}
+                    <div class="list-group list-group-flush small">
+                        {% for sess in sessions %}
+                            <a href="{{ url_for('ai.chat', session_id=sess.id) }}" class="list-group-item list-group-item-action rounded mb-1 border-0 {% if current_session and current_session.id == sess.id %}bg-primary text-white active{% endif %}">
+                                <div class="fw-semibold text-truncate">{{ sess.title }}</div>
+                                <div class="small {% if current_session and current_session.id == sess.id %}text-white-50{% else %}text-muted{% endif %}">
+                                    {{ sess.updated_at | friendly_date }}
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted small text-center my-4">No prior conversation sessions yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Chat Feed Area -->
+    <div class="col-lg-9 col-12">
+        <div class="mv-card d-flex flex-column" style="min-height: 580px;">
+            <!-- Chat Card Header -->
+            <div class="mv-card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success"><i class="bi bi-lock-fill"></i> Private Isolated RAG</span>
+                    <span class="small text-muted">Indexing {{ records_count }} personal medical items</span>
+                </div>
+                {% if current_session %}
+                    <form method="POST" action="{{ url_for('ai.clear_chat') }}" class="d-inline" onsubmit="return confirm('Clear this chat conversation?');">
+                        <input type="hidden" name="session_id" value="{{ current_session.id }}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2" title="Clear this chat session">
+                            <i class="bi bi-trash me-1"></i> Clear
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+
+            <!-- Messages Window -->
+            <div id="chat-messages-container" class="mv-card-body p-3 flex-grow-1" style="max-height: 440px; overflow-y: auto; background-color: var(--mv-bg);">
+                {% if messages %}
+                    {% for msg in messages %}
+                        {% if msg.sender == 'user' %}
+                            <!-- Patient Message -->
+                            <div class="d-flex justify-content-end mb-3">
+                                <div class="p-3 rounded text-white shadow-sm" style="background-color: var(--mv-navy); max-width: 80%;">
+                                    <div class="small fw-semibold mb-1 opacity-75"><i class="bi bi-person-fill me-1"></i> You</div>
+                                    <div>{{ msg.content }}</div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <!-- Assistant Message -->
+                            <div class="d-flex justify-content-start mb-3">
+                                <div class="p-3 rounded bg-white border shadow-sm" style="max-width: 85%;">
+                                    <div class="small fw-semibold mb-1 text-primary d-flex align-items-center gap-1">
+                                        <i class="bi bi-robot"></i> MediVault Assistant
+                                    </div>
+                                    <div class="small text-dark" style="white-space: pre-line;">{{ msg.content }}</div>
+                                    
+                                    {% if msg.citations %}
+                                        <div class="mt-3 pt-2 border-top">
+                                            <div class="fw-semibold small text-muted mb-1"><i class="bi bi-file-earmark-medical me-1"></i> Verified Document References:</div>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                {% for cit in msg.citations %}
+                                                    <a href="{{ cit.url }}" target="_blank" class="badge bg-light text-dark border text-decoration-none p-2 d-inline-flex align-items-center gap-1">
+                                                        <i class="bi bi-link-45deg text-primary"></i>
+                                                        <span>{{ cit.title }} ({{ cit.date }})</span>
+                                                    </a>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <!-- Welcome / Empty State -->
+                    <div class="text-center py-4 px-3">
+                        <div class="p-3 bg-white d-inline-block rounded-circle shadow-sm border text-primary mb-3">
+                            <i class="bi bi-chat-heart fs-1 text-primary"></i>
+                        </div>
+                        <h5 class="fw-bold" style="color: var(--mv-navy);">Ask Questions About Your Health Records</h5>
+                        <p class="text-muted small max-w-500 mx-auto mb-4">
+                            MediVault AI analyzes your uploaded laboratory tests, imaging scans, and prescriptions to answer your questions with direct citations.
+                        </p>
+
+                        <!-- Quick Prompt Suggestions -->
+                        <div class="text-start max-w-600 mx-auto">
+                            <div class="small fw-semibold text-muted mb-2"><i class="bi bi-lightbulb me-1"></i> Suggested Questions to Try:</div>
+                            <div class="d-flex flex-column gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm text-start prompt-suggestion-btn">
+                                    <i class="bi bi-chat-left-text me-2 text-primary"></i> Summarize my recent comprehensive metabolic panel and blood test results.
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm text-start prompt-suggestion-btn">
+                                    <i class="bi bi-capsule me-2 text-success"></i> What active medications and prescriptions are currently listed in my profile?
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm text-start prompt-suggestion-btn">
+                                    <i class="bi bi-calendar-check me-2 text-info"></i> What upcoming doctor appointments and clinical visits do I have scheduled?
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Chat Input Footer -->
+            <div class="p-3 bg-white border-top">
+                <form id="chat-input-form" method="POST" action="{{ url_for('ai.send_message') }}">
+                    <input type="hidden" name="session_id" id="session_id_input" value="{{ current_session.id if current_session else '' }}">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="message" id="chat-message-input" placeholder="Ask a question about your lab results, medications, or appointments..." required {% if not current_user.ai_consent %}disabled{% endif %}>
+                        <button type="submit" class="btn btn-mv-primary px-4" id="chat-send-btn" {% if not current_user.ai_consent %}disabled{% endif %}>
+                            <i class="bi bi-send-fill me-1"></i> Ask AI
+                        </button>
+                    </div>
+                    {% if not current_user.ai_consent %}
+                        <div class="form-text text-danger small mt-1">
+                            <i class="bi bi-info-circle me-1"></i> Please grant consent above to enable asking questions.
+                        </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Scroll chat window to bottom
+    const container = document.getElementById('chat-messages-container');
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // Quick prompt suggestion buttons
+    document.querySelectorAll('.prompt-suggestion-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = document.getElementById('chat-message-input');
+            if (input && !input.disabled) {
+                input.value = this.innerText.trim();
+                input.focus();
+            }
+        });
+    });
+
+    // Form submit loading state
+    const form = document.getElementById('chat-input-form');
+    const sendBtn = document.getElementById('chat-send-btn');
+    if (form && sendBtn) {
+        form.addEventListener('submit', function() {
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Thinking...';
+        });
+    }
+});
+</script>
+{% endblock %}

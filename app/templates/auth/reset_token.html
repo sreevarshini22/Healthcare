@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Set New Password – MediVault{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-5">
+            <div class="mv-card shadow-sm">
+                <div class="mv-card-header text-center d-block py-3 bg-white border-bottom">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-light text-success rounded-circle mb-2" style="width: 50px; height: 50px;">
+                        <i class="bi bi-shield-check fs-4 text-success"></i>
+                    </div>
+                    <h2 class="h5 fw-bold mb-1" style="color: var(--mv-navy);">Set New Password</h2>
+                    <p class="text-muted small mb-0">Create a secure new password for your account</p>
+                </div>
+
+                <div class="mv-card-body p-4">
+                    <form method="POST" action="{{ url_for('auth.reset_password', token=token) }}" data-validate-password="true">
+                        <div class="mb-3">
+                            <label for="password" class="form-label">New Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password" name="password" required placeholder="Minimum 8 characters">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm New Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required placeholder="Re-type new password">
+                        </div>
+
+                        <div class="p-3 bg-light rounded border text-muted small mb-4">
+                            <strong class="text-dark d-block mb-1">Requirement:</strong>
+                            Must contain at least 8 characters, with letters and numbers.
+                        </div>
+
+                        <button type="submit" class="btn btn-mv-primary w-100 py-2">
+                            <i class="bi bi-check2-circle me-1"></i> Update Password & Sign In
+                        </button>
+                    </form>
+                </div>
+
+                <div class="mv-card-footer text-center py-3">
+                    <a href="{{ url_for('auth.login') }}" class="small text-muted"><i class="bi bi-arrow-left me-1"></i> Cancel & Return to Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

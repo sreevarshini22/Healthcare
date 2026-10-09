@@ -1,0 +1,302 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Dashboard Overview – MediVault{% endblock %}
+
+{% block dashboard_content %}
+<!-- Welcome & Quick Action Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+    <div>
+        <h1 class="h4 fw-bold mb-1" style="color: var(--mv-navy);">Welcome back, {{ current_user.full_name }}</h1>
+        <p class="text-muted small mb-0">Here is a summary of your personal health records, prescriptions, and visits.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('records.upload') }}" class="btn btn-mv-primary btn-sm">
+            <i class="bi bi-cloud-arrow-up me-1"></i> Upload Record
+        </a>
+        <a href="{{ url_for('prescriptions.add') }}" class="btn btn-mv-success btn-sm">
+            <i class="bi bi-plus-circle me-1"></i> Add Prescription
+        </a>
+        <a href="{{ url_for('appointments.add') }}" class="btn btn-mv-secondary btn-sm">
+            <i class="bi bi-calendar-plus me-1"></i> Book Visit
+        </a>
+    </div>
+</div>
+
+<!-- 4 Key Summary Stat Cards -->
+<div class="row g-3 mb-4">
+    <!-- Total Medical Records -->
+    <div class="col-sm-6 col-lg-3">
+        <div class="mv-stat-card">
+            <div class="mv-stat-icon blue">
+                <i class="bi bi-folder2-open"></i>
+            </div>
+            <div>
+                <div class="mv-stat-number">{{ stats.total_records }}</div>
+                <div class="mv-stat-label">Medical Records</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Prescriptions -->
+    <div class="col-sm-6 col-lg-3">
+        <div class="mv-stat-card">
+            <div class="mv-stat-icon green">
+                <i class="bi bi-capsule"></i>
+            </div>
+            <div>
+                <div class="mv-stat-number">{{ stats.total_prescriptions }}</div>
+                <div class="mv-stat-label">Prescriptions ({{ stats.active_prescriptions }} Active)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Appointments -->
+    <div class="col-sm-6 col-lg-3">
+        <div class="mv-stat-card">
+            <div class="mv-stat-icon amber">
+                <i class="bi bi-calendar-check"></i>
+            </div>
+            <div>
+                <div class="mv-stat-number">{{ stats.upcoming_appointments_count }}</div>
+                <div class="mv-stat-label">Upcoming Visits</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Isolation -->
+    <div class="col-sm-6 col-lg-3">
+        <div class="mv-stat-card">
+            <div class="mv-stat-icon navy">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <div>
+                <div class="mv-stat-number text-success" style="font-size: 1.25rem;">Protected</div>
+                <div class="mv-stat-label">Private Isolation</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="row g-4">
+    <!-- Left Column: Recent Records & Upcoming Appointments -->
+    <div class="col-lg-8">
+        <!-- Recently Uploaded Documents Card -->
+        <div class="mv-card mb-4">
+            <div class="mv-card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-file-earmark-medical text-primary"></i>
+                    <span>Recently Uploaded Records</span>
+                </div>
+                <a href="{{ url_for('records.index') }}" class="small fw-semibold text-decoration-none">
+                    View All ({{ stats.total_records }}) <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="mv-card-body p-0">
+                {% if stats.recent_records %}
+                    <div class="table-responsive">
+                        <table class="table mv-table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Document Title</th>
+                                    <th>Category</th>
+                                    <th>Report Date</th>
+                                    <th>File</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rec in stats.recent_records %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('records.view_record', record_id=rec.id) }}" class="fw-bold text-dark text-decoration-none">
+                                                {{ rec.title }}
+                                            </a>
+                                            {% if rec.doctor_or_facility %}
+                                                <div class="small text-muted">{{ rec.doctor_or_facility }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge-mv category">{{ rec.category }}</span>
+                                        </td>
+                                        <td class="small">{{ rec.report_date | friendly_date }}</td>
+                                        <td class="small text-muted">
+                                            {% if rec.is_pdf %}
+                                                <i class="bi bi-file-pdf text-danger me-1"></i> PDF
+                                            {% else %}
+                                                <i class="bi bi-file-image text-primary me-1"></i> Image
+                                            {% endif %}
+                                            <span class="text-secondary" style="font-size: 0.78rem;">({{ rec.file_size | format_bytes }})</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('records.view_record', record_id=rec.id) }}" class="btn btn-outline-secondary" title="View details">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="{{ url_for('records.download_file', record_id=rec.id, download=1) }}" class="btn btn-outline-secondary" title="Download original file">
+                                                    <i class="bi bi-download"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 px-3">
+                        <i class="bi bi-folder-plus text-muted" style="font-size: 2.5rem;"></i>
+                        <h6 class="fw-bold mt-2">No medical records uploaded yet</h6>
+                        <p class="text-muted small mb-3">Upload your lab tests, imaging scans, and clinic reports for safe keeping.</p>
+                        <a href="{{ url_for('records.upload') }}" class="btn btn-mv-primary btn-sm">
+                            <i class="bi bi-cloud-arrow-up me-1"></i> Upload Your First Record
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Upcoming Appointments Table Card -->
+        <div class="mv-card">
+            <div class="mv-card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-calendar-event text-info"></i>
+                    <span>Upcoming Doctor & Hospital Appointments</span>
+                </div>
+                <a href="{{ url_for('appointments.index') }}" class="small fw-semibold text-decoration-none">
+                    All Appointments ({{ stats.total_appointments }}) <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="mv-card-body p-0">
+                {% if stats.upcoming_appointments %}
+                    <div class="table-responsive">
+                        <table class="table mv-table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Doctor / Facility</th>
+                                    <th>Date & Time</th>
+                                    <th>Location</th>
+                                    <th>Purpose</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for apt in stats.upcoming_appointments %}
+                                    <tr>
+                                        <td>
+                                            <strong class="text-dark">{{ apt.doctor_hospital_name }}</strong>
+                                        </td>
+                                        <td class="small">
+                                            <div><i class="bi bi-calendar3 me-1 text-muted"></i> {{ apt.appointment_date | friendly_date }}</div>
+                                            <div class="text-muted"><i class="bi bi-clock me-1 text-muted"></i> {{ apt.appointment_time }}</div>
+                                        </td>
+                                        <td class="small text-muted">{{ apt.location }}</td>
+                                        <td class="small">{{ apt.purpose }}</td>
+                                        <td class="text-end">
+                                            <a href="{{ url_for('appointments.edit', appointment_id=apt.id) }}" class="btn btn-outline-secondary btn-sm" title="Edit Appointment">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 px-3">
+                        <i class="bi bi-calendar-plus text-muted" style="font-size: 2.5rem;"></i>
+                        <h6 class="fw-bold mt-2">No upcoming visits scheduled</h6>
+                        <p class="text-muted small mb-3">Keep track of follow-ups, diagnostic scans, and consultations.</p>
+                        <a href="{{ url_for('appointments.add') }}" class="btn btn-mv-secondary btn-sm">
+                            <i class="bi bi-calendar-plus me-1"></i> Schedule an Appointment
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Active Prescriptions & Audit Activity Log -->
+    <div class="col-lg-4">
+        <!-- Active Prescriptions Preview Card -->
+        <div class="mv-card mb-4">
+            <div class="mv-card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-capsule text-success"></i>
+                    <span>Active Prescriptions</span>
+                </div>
+                <a href="{{ url_for('prescriptions.index') }}" class="small fw-semibold text-decoration-none">
+                    View All <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="mv-card-body p-0">
+                {% if stats.recent_prescriptions %}
+                    <div class="list-group list-group-flush small">
+                        {% for rx in stats.recent_prescriptions %}
+                            <div class="list-group-item p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <strong class="text-dark">{{ rx.title }}</strong>
+                                    <span class="badge bg-success" style="font-size: 0.7rem;">Active</span>
+                                </div>
+                                {% if rx.doctor_name %}
+                                    <div class="text-muted small mb-1"><i class="bi bi-person me-1"></i> Prescribed by {{ rx.doctor_name }}</div>
+                                {% endif %}
+                                {% if rx.medications_info %}
+                                    <div class="text-secondary small bg-light p-2 rounded border mb-2" style="white-space: pre-line;">{{ rx.medications_info }}</div>
+                                {% endif %}
+                                <div class="d-flex justify-content-between align-items-center text-muted small">
+                                    <span>Date: {{ rx.date | friendly_date }}</span>
+                                    {% if rx.stored_filename %}
+                                        <a href="{{ url_for('prescriptions.download_file', prescription_id=rx.id) }}" target="_blank" class="text-decoration-none">
+                                            <i class="bi bi-paperclip"></i> View Document
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 px-3">
+                        <i class="bi bi-capsule-pill text-muted" style="font-size: 2.2rem;"></i>
+                        <p class="text-muted small my-2">No active prescriptions logged.</p>
+                        <a href="{{ url_for('prescriptions.add') }}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-plus-circle me-1"></i> Add Prescription
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Activity Audit Log Card -->
+        <div class="mv-card">
+            <div class="mv-card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history text-secondary"></i>
+                    <span>Recent Security & Activity Trail</span>
+                </div>
+            </div>
+            <div class="mv-card-body p-0">
+                {% if stats.recent_activity %}
+                    <ul class="list-group list-group-flush small">
+                        {% for act in stats.recent_activity %}
+                            <li class="list-group-item px-3 py-2">
+                                <div class="d-flex justify-content-between">
+                                    <strong class="text-dark">{{ act.action }}</strong>
+                                    <span class="text-muted small" style="font-size: 0.75rem;">{{ act.created_at | friendly_date }}</span>
+                                </div>
+                                {% if act.details %}
+                                    <div class="text-muted small">{{ act.details }}</div>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="text-center py-3 text-muted small">
+                        No activity records logged yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

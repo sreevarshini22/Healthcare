@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}About Us – Personal Health Record Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">About Us</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="mv-card p-4">
+                <h1 class="h3 fw-bold mb-3" style="color: var(--mv-navy);">About MediVault</h1>
+                <p class="lead text-secondary mb-4" style="font-size: 1.05rem;">
+                    MediVault was established with a singular objective: to provide individuals and families with a reliable, structured, and private health management portal.
+                </p>
+
+                <h4 class="h5 fw-bold mb-2">Our Mission</h4>
+                <p class="text-muted mb-4">
+                    In modern healthcare, patients often consult multiple physicians, diagnostic labs, and specialists across different hospital networks. Medical records frequently become fragmented across patient portals, paper files, and email attachments. MediVault bridges this gap by offering a single, secure repository where patients maintain full ownership of their longitudinal health records.
+                </p>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded bg-light">
+                            <h6 class="fw-bold mb-1"><i class="bi bi-person-check text-primary me-2"></i>Patient-Centric Control</h6>
+                            <p class="small text-muted mb-0">Every record is tied directly and exclusively to your account. You decide what to store, update, or permanently delete.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded bg-light">
+                            <h6 class="fw-bold mb-1"><i class="bi bi-file-earmark-lock text-success me-2"></i>Data Privacy & Security</h6>
+                            <p class="small text-muted mb-0">Documents are kept in private directories inaccessible to unauthorized users or web indexers.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="h5 fw-bold mb-2">Key Principles</h4>
+                <ul class="text-muted small d-flex flex-column gap-2 mb-4">
+                    <li><strong>Transparency:</strong> Clear policies on how your data is handled. We never monetize or distribute personal health information.</li>
+                    <li><strong>Accessibility:</strong> Fast, clean, and intuitive interfaces that work smoothly on computers, tablets, and smartphones.</li>
+                    <li><strong>Data Portability:</strong> View documents directly in the browser or download your complete original files whenever needed.</li>
+                    <li><strong>No Medical Modification:</strong> MediVault preserves your records verbatim and does not alter prescribed medications or clinical dosages.</li>
+                </ul>
+
+                <div class="p-3 bg-light rounded border small">
+                    <i class="bi bi-info-circle-fill text-primary me-2"></i>
+                    <em><strong>Notice:</strong> MediVault is a personal health record management platform and does not provide clinical diagnosis, medical treatment recommendations, or emergency response services. Always consult licensed medical professionals for health inquiries.</em>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="mv-card p-4">
+                <h5 class="fw-bold mb-3">System Specifications</h5>
+                <ul class="list-unstyled small text-muted d-flex flex-column gap-2 mb-4">
+                    <li class="d-flex justify-content-between border-bottom pb-2">
+                        <span>Application:</span>
+                        <strong class="text-dark">MediVault v1.0</strong>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom pb-2">
+                        <span>Supported Files:</span>
+                        <strong class="text-dark">PDF, PNG, JPG, JPEG, WEBP</strong>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom pb-2">
+                        <span>Max File Upload:</span>
+                        <strong class="text-dark">16 MB per document</strong>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom pb-2">
+                        <span>Data Storage:</span>
+                        <strong class="text-dark">Isolated Directory Vault</strong>
+                    </li>
+                    <li class="d-flex justify-content-between pb-1">
+                        <span>Security Standard:</span>
+                        <strong class="text-dark">OWASP / Role-Scoped Access</strong>
+                    </li>
+                </ul>
+
+                <div class="text-center pt-2">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-mv-primary w-100 mb-2">Create Your Health Vault</a>
+                    <a href="{{ url_for('main.contact') }}" class="btn btn-mv-secondary w-100">Contact Support Team</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

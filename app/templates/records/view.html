@@ -1,0 +1,197 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}{{ record.title }} – Medical Record – MediVault{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('records.index') }}">Medical Records</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ record.title }}</li>
+        </ol>
+    </nav>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <h1 class="h4 fw-bold mb-1" style="color: var(--mv-navy);">{{ record.title }}</h1>
+            <div class="d-flex flex-wrap align-items-center gap-2 text-muted small">
+                <span class="badge-mv category">{{ record.category }}</span>
+                <span>•</span>
+                <span><i class="bi bi-calendar3 me-1"></i> Report Date: <strong>{{ record.report_date | friendly_date }}</strong></span>
+                {% if record.doctor_or_facility %}
+                    <span>•</span>
+                    <span><i class="bi bi-hospital me-1"></i> {{ record.doctor_or_facility }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <form method="POST" action="{{ url_for('ai.summarize_record', record_id=record.id) }}" class="d-inline">
+                <button type="submit" class="btn btn-outline-primary btn-sm" id="btn-generate-summary">
+                    <i class="bi bi-robot me-1"></i> {{ 'Regenerate AI Summary' if record.ai_summary else 'Generate AI Summary' }}
+                </button>
+            </form>
+            <a href="{{ url_for('ai.chat') }}" class="btn btn-outline-info btn-sm">
+                <i class="bi bi-chat-dots me-1"></i> Ask AI About This
+            </a>
+            <a href="{{ url_for('records.download_file', record_id=record.id, download=1) }}" class="btn btn-mv-primary btn-sm">
+                <i class="bi bi-download me-1"></i> Download File
+            </a>
+            <a href="{{ url_for('records.edit_record', record_id=record.id) }}" class="btn btn-mv-secondary btn-sm">
+                <i class="bi bi-pencil me-1"></i> Edit Details
+            </a>
+            <form method="POST" action="{{ url_for('records.delete_record', record_id=record.id) }}" class="d-inline">
+                <button type="submit" class="btn btn-outline-danger btn-sm btn-confirm-delete" data-item-name="{{ record.title }}" title="Delete Record">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- AI-Based Report Summarization Section -->
+<div class="mv-card mb-4 border-info">
+    <div class="mv-card-header d-flex justify-content-between align-items-center bg-light">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-stars text-info fs-5"></i>
+            <span class="fw-bold" style="color: var(--mv-navy);">AI Clinical Document Summary</span>
+            <span class="badge bg-secondary" style="font-size: 0.7rem;">Automated Extraction</span>
+        </div>
+        {% if record.ai_summary_date %}
+            <div class="small text-muted">
+                Generated: {{ record.ai_summary_date | friendly_date }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="mv-card-body p-4">
+        {% if record.ai_summary %}
+            <div class="alert alert-light border d-flex align-items-center gap-2 py-2 px-3 mb-3 small">
+                <i class="bi bi-info-circle text-primary"></i>
+                <div>
+                    <strong>Verification Note:</strong> This summary was generated using automated clinical parsing. Always review the original laboratory or diagnostic report below to verify specific values.
+                </div>
+            </div>
+            <div class="p-3 bg-white rounded border small text-dark" style="white-space: pre-line; line-height: 1.6;">
+                {{ record.ai_summary }}
+            </div>
+        {% else %}
+            <div class="text-center py-4 px-3">
+                <i class="bi bi-file-earmark-text text-info" style="font-size: 2.5rem;"></i>
+                <h6 class="fw-bold mt-2">No AI Summary Generated Yet</h6>
+                <p class="text-muted small max-w-500 mx-auto mb-3">
+                    MediVault AI can extract key diagnostic findings, numerical biomarkers, physician directives, and patient action items from this report.
+                </p>
+                <form method="POST" action="{{ url_for('ai.summarize_record', record_id=record.id) }}">
+                    <button type="submit" class="btn btn-mv-primary btn-sm px-3">
+                        <i class="bi bi-robot me-1"></i> Generate Concise AI Summary Now
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Embedded File Viewer -->
+    <div class="col-lg-8">
+        <div class="mv-card">
+            <div class="mv-card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-eye text-primary"></i>
+                    <span>Original Document Viewer Preview</span>
+                </div>
+                <div class="small text-muted">
+                    {{ record.original_filename }} ({{ record.file_size | format_bytes }})
+                </div>
+            </div>
+            <div class="mv-card-body p-2 bg-light">
+                {% if record.is_pdf %}
+                    <div class="ratio ratio-4x3 border rounded bg-white" style="min-height: 550px;">
+                        <object data="{{ url_for('records.download_file', record_id=record.id) }}" type="application/pdf" width="100%" height="100%">
+                            <div class="text-center p-5">
+                                <i class="bi bi-file-earmark-pdf text-danger" style="font-size: 3rem;"></i>
+                                <p class="my-2">Inline PDF preview is not supported by your browser.</p>
+                                <a href="{{ url_for('records.download_file', record_id=record.id, download=1) }}" class="btn btn-mv-primary btn-sm">
+                                    <i class="bi bi-download me-1"></i> Download PDF
+                                </a>
+                            </div>
+                        </object>
+                    </div>
+                {% elif record.is_image %}
+                    <div class="text-center p-3 bg-white rounded border">
+                        <img src="{{ url_for('records.download_file', record_id=record.id) }}" alt="{{ record.title }}" class="img-fluid rounded shadow-sm" style="max-height: 600px; object-fit: contain;">
+                    </div>
+                {% else %}
+                    <div class="text-center p-5 bg-white rounded border">
+                        <i class="bi bi-file-earmark text-primary" style="font-size: 3rem;"></i>
+                        <h6 class="mt-2">Preview unavailable for this format</h6>
+                        <a href="{{ url_for('records.download_file', record_id=record.id, download=1) }}" class="btn btn-mv-primary btn-sm mt-2">
+                            <i class="bi bi-download me-1"></i> Download File
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Record Metadata & Clinical Notes -->
+    <div class="col-lg-4">
+        <!-- Metadata Overview -->
+        <div class="mv-card mb-4">
+            <div class="mv-card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-info-circle text-primary"></i>
+                    <span>Document Metadata</span>
+                </div>
+            </div>
+            <div class="mv-card-body">
+                <ul class="list-unstyled small d-flex flex-column gap-2 mb-0">
+                    <li class="d-flex justify-content-between border-bottom pb-2">
+                        <span class="text-muted">Category:</span>
+                        <strong class="text-dark">{{ record.category }}</strong>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom pb-2">
+                        <span class="text-muted">Report Date:</span>
+                        <strong class="text-dark">{{ record.report_date | friendly_date }}</strong>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom pb-2">
+                        <span class="text-muted">Physician / Clinic:</span>
+                        <strong class="text-dark">{{ record.doctor_or_facility or 'Not Specified' }}</strong>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom pb-2">
+                        <span class="text-muted">Original File:</span>
+                        <strong class="text-dark text-truncate max-w-150" title="{{ record.original_filename }}">{{ record.original_filename }}</strong>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom pb-2">
+                        <span class="text-muted">File Size:</span>
+                        <strong class="text-dark">{{ record.file_size | format_bytes }}</strong>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom pb-2">
+                        <span class="text-muted">Archived On:</span>
+                        <strong class="text-dark">{{ record.created_at | friendly_date }}</strong>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <span class="text-muted">Ownership:</span>
+                        <span class="badge bg-success">Authenticated User</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Clinical Notes Box -->
+        <div class="mv-card">
+            <div class="mv-card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-journal-text text-primary"></i>
+                    <span>Clinical Notes & Observations</span>
+                </div>
+            </div>
+            <div class="mv-card-body">
+                {% if record.notes %}
+                    <p class="small text-dark mb-0" style="white-space: pre-line;">{{ record.notes }}</p>
+                {% else %}
+                    <p class="small text-muted fst-italic mb-0">No clinical notes recorded for this document.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
