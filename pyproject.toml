@@ -1,0 +1,9 @@
+[project]
+name = "medivault"
+version = "1.0.0"
+description = "MediVault - Personal Health Record Manager"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[tool.vercel]
+entrypoint = "run.py:app"
