@@ -250,7 +250,7 @@ class User(UserMixin):
         else:
             full_name = str(full_name).strip()
             
-        password_hash = generate_password_hash(password) if password else ""
+        password_hash = kwargs.get('password_hash') or (generate_password_hash(password) if password else "")
         now = utc_now()
         
         user_doc = {
@@ -304,7 +304,7 @@ class User(UserMixin):
 class PendingRegistration:
     """Manages pending multi-factor OTP registration records in MongoDB."""
     @classmethod
-    def create(cls, email, phone_number, email_otp, sms_otp, expires_minutes=10):
+    def create(cls, email, phone_number, email_otp, sms_otp, full_name=None, password=None, expires_minutes=10):
         db = get_db()
         token = secrets.token_urlsafe(32)
         now = utc_now()
@@ -315,10 +315,14 @@ class PendingRegistration:
             '$or': [{'email': email.strip().lower()}, {'phone_number': phone_number.strip()}]
         })
         
+        password_hash = generate_password_hash(password) if password else ""
+        
         doc = {
             'session_token': token,
+            'full_name': (full_name or '').strip(),
             'email': email.strip().lower(),
             'phone_number': phone_number.strip(),
+            'password_hash': password_hash,
             'email_otp': str(email_otp).strip(),
             'sms_otp': str(sms_otp).strip(),
             'expires_at': expires_at,

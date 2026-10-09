@@ -17,7 +17,7 @@
 
                 <div class="card-body p-4">
                     <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label for="identifier" class="form-label fw-semibold small">
                                 Email Address or Phone Number <span class="text-danger">*</span>
                             </label>
@@ -27,7 +27,18 @@
                                        value="{{ identifier or '' }}" required autofocus 
                                        placeholder="name@example.com or +1 (555) 000-0000">
                             </div>
-                            <div class="form-text small" style="color: var(--text-muted);">A 6-digit verification code will be sent to verify your identity.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label fw-semibold small">
+                                Password <span class="fw-normal" style="color: var(--text-muted);">(Optional for OTP sign-in)</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--surface-subtle); color: var(--text-secondary); border-color: var(--border-color);"><i class="bi bi-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Enter password or leave blank for OTP">
+                            </div>
+                            <div class="form-text small" style="color: var(--text-muted);">Enter password to sign in directly, or leave blank to receive a 6-digit OTP.</div>
                         </div>
 
                         <button type="submit" class="btn btn-mv-primary w-100 py-2 fw-semibold">

@@ -12,24 +12,40 @@
                         <i class="bi bi-person-plus-fill fs-4" style="color: var(--link-color);"></i>
                     </div>
                     <h1 class="h4 fw-bold mb-1">Create Account</h1>
-                    <p class="small mb-0" style="color: var(--text-muted);">Register with your email address and phone number</p>
+                    <p class="small mb-0" style="color: var(--text-muted);">Enter your credentials to register</p>
                 </div>
 
                 <div class="card-body p-4">
                     <form method="POST" action="{{ url_for('auth.register') }}">
                         <div class="mb-3">
-                            <label for="email" class="form-label fw-semibold small">Email Address <span class="text-danger">*</span></label>
+                            <label for="name" class="form-label fw-semibold small">Full Name <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text" style="background-color: var(--surface-subtle); color: var(--text-secondary); border-color: var(--border-color);"><i class="bi bi-envelope"></i></span>
-                                <input type="email" class="form-control" id="email" name="email" value="{{ email or '' }}" required autofocus placeholder="name@example.com">
+                                <span class="input-group-text" style="background-color: var(--surface-subtle); color: var(--text-secondary); border-color: var(--border-color);"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" id="name" name="name" value="{{ name or '' }}" required autofocus placeholder="John Doe">
                             </div>
                         </div>
 
-                        <div class="mb-4">
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-semibold small">Email Address <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--surface-subtle); color: var(--text-secondary); border-color: var(--border-color);"><i class="bi bi-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ email or '' }}" required placeholder="name@example.com">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
                             <label for="phone_number" class="form-label fw-semibold small">Phone Number <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text" style="background-color: var(--surface-subtle); color: var(--text-secondary); border-color: var(--border-color);"><i class="bi bi-telephone"></i></span>
                                 <input type="tel" class="form-control" id="phone_number" name="phone_number" value="{{ phone_number or '' }}" required placeholder="+1 (555) 000-0000">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label fw-semibold small">Create Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--surface-subtle); color: var(--text-secondary); border-color: var(--border-color);"><i class="bi bi-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" required placeholder="Create a secure password" minlength="6">
                             </div>
                         </div>
 

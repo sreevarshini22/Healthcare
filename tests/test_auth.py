@@ -274,3 +274,71 @@ def test_profile_update(auth_client_a, app, user_a):
         assert user.blood_group == 'AB+'
         assert user.emergency_contact == 'Dr. Robert (555-0011)'
 
+def test_register_with_credentials_name_email_phone_password(client, app):
+    """Test registration with full name, email, phone number, and password credentials."""
+    resp = client.post('/auth/register', data={
+        'name': 'Dr. Marcus Welby',
+        'email': 'marcus.welby@medivault.health',
+        'phone_number': '+1 (415) 555-0199',
+        'password': 'StrongPassword123!'
+    }, follow_redirects=True)
+
+    assert resp.status_code == 200
+    assert b"Verify Identity" in resp.data
+
+    with app.app_context():
+        db = get_db()
+        pending = db.pending_registrations.find_one({'email': 'marcus.welby@medivault.health'})
+        assert pending is not None
+        assert pending['full_name'] == 'Dr. Marcus Welby'
+        assert pending['password_hash'] != ""
+        email_otp = pending['email_otp']
+        sms_otp = pending['sms_otp']
+        token = pending['session_token']
+
+    # Complete OTP verification
+    verify_resp = client.post(f'/auth/verify-registration?token={token}', data={
+        'email_otp': email_otp,
+        'sms_otp': sms_otp
+    }, follow_redirects=True)
+
+    assert verify_resp.status_code == 200
+    assert b"Welcome to MediVault, Dr. Marcus Welby!" in verify_resp.data
+
+    # Verify user was saved with password and full name in MongoDB
+    with app.app_context():
+        user = User.get_by_email('marcus.welby@medivault.health')
+        assert user is not None
+        assert user.full_name == 'Dr. Marcus Welby'
+        assert user.check_password('StrongPassword123!') is True
+
+def test_login_with_direct_password(client, app):
+    """Test direct password sign-in without needing OTP when password is provided."""
+    # Create user with password
+    with app.app_context():
+        User.create_user(
+            full_name='Clara Barton',
+            email='clara.barton@redcross.org',
+            phone_number='+1 (202) 555-0177',
+            password='SecureClaraPassword456!'
+        )
+
+    # Login with correct password
+    resp = client.post('/auth/login', data={
+        'identifier': 'clara.barton@redcross.org',
+        'password': 'SecureClaraPassword456!'
+    }, follow_redirects=True)
+
+    assert resp.status_code == 200
+    assert b"Welcome back, Clara Barton!" in resp.data
+
+    # Login with wrong password
+    bad_resp = client.post('/auth/login', data={
+        'identifier': 'clara.barton@redcross.org',
+        'password': 'WrongPassword123'
+    }, follow_redirects=True)
+
+    assert bad_resp.status_code == 200
+    assert b"Incorrect password" in bad_resp.data
+
+

@@ -25,48 +25,57 @@ def register():
         return redirect(url_for('dashboard.index'))
         
     if request.method == 'POST':
+        raw_name = request.form.get('name', '').strip() or request.form.get('full_name', '').strip()
         raw_email = request.form.get('email', '').strip()
         raw_phone = request.form.get('phone_number', '').strip()
+        raw_password = request.form.get('password', '').strip()
         
         # 1. Validate email
         is_email_valid, clean_email, email_err = validate_email(raw_email)
         if not is_email_valid:
             flash(email_err, "danger")
-            return render_template('auth/register.html', email=raw_email, phone_number=raw_phone)
+            return render_template('auth/register.html', name=raw_name, email=raw_email, phone_number=raw_phone)
             
         # 2. Validate phone
         is_phone_valid, clean_phone, phone_err = validate_phone(raw_phone)
         if not is_phone_valid:
             flash(phone_err, "danger")
-            return render_template('auth/register.html', email=raw_email, phone_number=raw_phone)
+            return render_template('auth/register.html', name=raw_name, email=raw_email, phone_number=raw_phone)
             
-        # 3. Check for existing users with duplicate email
+        # 3. Validate password if provided
+        if raw_password and len(raw_password) < 6:
+            flash("Password must be at least 6 characters long.", "danger")
+            return render_template('auth/register.html', name=raw_name, email=raw_email, phone_number=raw_phone)
+            
+        # 4. Check for existing users with duplicate email
         existing_by_email = User.get_by_email(clean_email)
         if existing_by_email:
             flash("An account with this email address already exists. Please log in.", "warning")
             return redirect(url_for('auth.login', identifier=clean_email))
             
-        # 4. Check for existing users with duplicate phone
+        # 5. Check for existing users with duplicate phone
         existing_by_phone = User.get_by_phone(clean_phone)
         if existing_by_phone:
             flash("An account with this phone number already exists. Please log in.", "warning")
             return redirect(url_for('auth.login', identifier=clean_phone))
             
-        # 5. Generate secure 6-digit OTPs
+        # 6. Generate secure 6-digit OTPs
         email_otp = generate_otp_code()
         sms_otp = generate_otp_code()
         
-        # 6. Save Pending Registration in MongoDB
+        # 7. Save Pending Registration in MongoDB
         session_token = PendingRegistration.create(
             email=clean_email,
             phone_number=clean_phone,
             email_otp=email_otp,
             sms_otp=sms_otp,
+            full_name=raw_name,
+            password=raw_password,
             expires_minutes=10
         )
         session['reg_session_token'] = session_token
         
-        # 7. Dispatch Email OTP
+        # 8. Dispatch Email OTP
         email_subject = "MediVault – Your Registration Verification Code"
         email_html = f"""
         <div style="font-family: Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 24px; border: 1px solid #dce4ec; border-radius: 8px; background-color: #ffffff;">
@@ -83,7 +92,7 @@ def register():
         """
         send_email_notification(clean_email, email_subject, email_html)
         
-        # 8. Dispatch SMS OTP
+        # 9. Dispatch SMS OTP
         sms_text = f"MediVault: Your registration verification code is {sms_otp}. Valid for 10 minutes. Do not share this code."
         send_sms_notification(clean_phone, sms_text)
         
@@ -134,8 +143,10 @@ def verify_registration():
         # Valid! Create User in MongoDB
         try:
             new_user = User.create_user(
+                full_name=reg_doc.get('full_name') or None,
                 email=reg_doc['email'],
                 phone_number=reg_doc['phone_number'],
+                password_hash=reg_doc.get('password_hash'),
                 email_verified=True,
                 phone_verified=True
             )
@@ -237,6 +248,19 @@ def login():
         if not user.is_active:
             flash("Your account has been deactivated. Please contact support.", "danger")
             return render_template('auth/login.html', identifier=raw_identifier)
+            
+        # Optional direct password authentication
+        raw_password = request.form.get('password', '').strip()
+        if raw_password:
+            if user.check_password(raw_password):
+                login_user(user, remember=True)
+                log_activity(user.id, "User Login", "User logged in directly with password.")
+                flash(f"Welcome back, {user.full_name}!", "success")
+                next_page = request.args.get('next') or request.form.get('next')
+                return redirect(next_page or url_for('dashboard.index'))
+            else:
+                flash("Incorrect password. Please try again or leave blank to verify via OTP.", "danger")
+                return render_template('auth/login.html', identifier=raw_identifier)
             
         # Generate 6-digit login OTP
         otp_code = generate_otp_code()
